@@ -9,11 +9,24 @@ typedef struct kernel {
     float *data;
 } kernel;
 
-image *convolve(image *img, kernel *kernel);
+enum strategy {
+    PAD_0,
+    MIRROR,
+    FULL,
+    NO_BORDER,
+};
+
+image *kernel_convolve(image *img, kernel *kernel, enum strategy how,
+                       float fill);
+image *kernel_convolve_no_border(image *img, kernel *kernel);
+float apply_kernel_at(image *img, kernel *krn, int y, int x);
 
 kernel *make_empty_kernel(int height, int width);
 kernel *make_kernel(int height, int width);
-kernel *make_sobelx();
-kernel *make_sobely();
-kernel *make_gaus(int height, int width);
+kernel *kernel_make_sobelx();
+kernel *kernel_make_sobely();
+kernel *kernel_make_gaus(int height, int width, float sigma);
+float kernel_get_value(kernel *krnl, int y, int x);
+void kernel_set_value(kernel *krnl, int y, int x, float value);
+int kernel_length(kernel *krnl);
 #endif

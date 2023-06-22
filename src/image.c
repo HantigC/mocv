@@ -19,6 +19,10 @@ image *make_image(int height, int width, int channels) {
     return img;
 }
 
+image *make_image_like(image *img) {
+    return make_image(img->height, img->width, img->channels);
+}
+
 void save_image_stb(image *im, const char *name, int png) {
     char buff[256];
     unsigned char *data = (unsigned char *)calloc(
@@ -126,4 +130,18 @@ void set_pixel(image *img, int y, int x, int c, float value) {
 float get_pixel(image *img, int y, int x, int c) {
     int location = compute_location(img, y, x, c);
     return img->data[location];
+}
+
+image *image_to_gray(image *img) {
+    image *des = make_image(img->height, img->width, 1);
+    float mean = 0.0f;
+    for (int y = 0; y < img->height; ++y) {
+        for (int x = 0; x < img->width; ++x) {
+            mean = (get_pixel(img, y, x, 0) + get_pixel(img, y, x, 1) +
+                    get_pixel(img, y, x, 2)) /
+                   3.0f;
+            set_pixel(des, y, x, 0, mean / 3.0f);
+        }
+    }
+    return des;
 }

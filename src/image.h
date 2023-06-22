@@ -15,6 +15,7 @@ typedef struct rgb {
 int image_area(image *);
 image *make_empty_image(int height, int width, int channels);
 image *make_image(int height, int width, int channels);
+image *make_image_like(image *);
 
 // load images
 image *load_image(char *filename);
@@ -35,4 +36,5 @@ void set_pixel(image *img, int y, int x, int c, float v);
 
 float rgb_at(image *, int y, int x);
 void clamp_image(image *);
+image *image_to_gray(image *img) ;
 #endif

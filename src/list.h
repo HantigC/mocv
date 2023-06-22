@@ -17,13 +17,13 @@ void list_insert(list *, void *);
 
 typedef void (*fn)(void *);
 void display_list(list *, fn);
-list* map_list(list *, fn);
+list *map_list(list *, fn);
 
-void* pop_first(list *);
-void* pop_last(list *);
+void *pop_first(list *);
+void *pop_last(list *);
 
-void* get_first(list *);
-void* get_last(list *);
+void *get_first(list *);
+void *get_last(list *);
 
 void free_list(list *);
 #endif
