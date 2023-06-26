@@ -16,3 +16,11 @@ float *normalize(float *xs, int length, float normalizer, int inplace) {
     }
     return dest;
 }
+
+point2di *make_empty_point2di() { return (point2di *)malloc(sizeof(point2di)); }
+point2di *make_point2di(int x, int y) {
+    point2di *p = (point2di *)malloc(sizeof(point2di));
+    p->x = x;
+    p->y = y;
+    return p;
+}

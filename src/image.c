@@ -106,7 +106,7 @@ image *load_image_binary(const char *fname) {
     return im;
 }
 
-void free_image(image im) { free(im.data); }
+void free_image(image *im) { free(im->data); free(im); }
 
 image *copy_image(image *img) {
     image *dest_img = make_empty_image(img->width, img->height, img->channels);

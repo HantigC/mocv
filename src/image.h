@@ -26,7 +26,7 @@ void save_image_binary(image im, const char *fname);
 void save_png(image *im, const char *name);
 void save_image(image *im, const char *name);
 
-void free_image(image im);
+void free_image(image *im);
 image *copy_image(image *img);
 
 int image_size(image *img);

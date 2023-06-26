@@ -169,3 +169,29 @@ image *kernel_convolve(image *img, kernel *kernel, enum strategy how,
 }
 
 int kernel_length(kernel *krnl) { return krnl->width * krnl->height; }
+kernel *kernel_add(kernel *st_kernel, kernel *nd_kernel, int inplace) {
+    kernel *dest;
+    if (inplace) {
+        dest = st_kernel;
+    } else {
+        dest = (kernel *)malloc(sizeof(kernel));
+    }
+    for (int i = 0; i < kernel_length(st_kernel); ++i) {
+        dest->data[i] = st_kernel->data[i] + nd_kernel->data[i];
+    }
+    return dest;
+}
+
+void kernel_fill_inplace(kernel *kernel, float fill_value) {
+    for (int i = 0; i < kernel_length(kernel); ++i) {
+        kernel->data[i] = fill_value;
+    }
+}
+
+void free_kernel_content(kernel kernel) {
+    free(kernel.data);
+}
+void free_kernel(kernel *kernel){
+    free(kernel->data);
+    free(kernel);
+}

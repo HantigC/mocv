@@ -77,3 +77,17 @@ void free_list(list *alist) {
     }
     free(alist);
 }
+
+node *next(node *node) { return node->next; }
+
+list *list_filter(p_fn fn, list *a_list) {
+    list *dest_list = list_make();
+    node *node = a_list->first;
+    while (node) {
+        if (fn(node->item)) {
+            list_insert(dest_list, node->item);
+        }
+        node = node->next;
+    }
+    return dest_list;
+}

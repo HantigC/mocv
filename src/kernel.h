@@ -29,4 +29,10 @@ kernel *kernel_make_gaus(int height, int width, float sigma);
 float kernel_get_value(kernel *krnl, int y, int x);
 void kernel_set_value(kernel *krnl, int y, int x, float value);
 int kernel_length(kernel *krnl);
+kernel* kernel_add(kernel *st_kernel, kernel *nd_kernel, int inplace);
+void kernel_fill_inplace(kernel *kernek, float fill_value);
+
+void free_kernel_content(kernel kernel);
+void free_kernel(kernel *kernel);
 #endif
+

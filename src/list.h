@@ -16,6 +16,7 @@ list *list_make();
 void list_insert(list *, void *);
 
 typedef void (*fn)(void *);
+typedef int (*p_fn)(void *);
 void display_list(list *, fn);
 list *map_list(list *, fn);
 
@@ -26,4 +27,6 @@ void *get_first(list *);
 void *get_last(list *);
 
 void free_list(list *);
+node *next(node *);
+list* list_filter(p_fn, list *);
 #endif
