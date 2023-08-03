@@ -106,7 +106,10 @@ image *load_image_binary(const char *fname) {
     return im;
 }
 
-void free_image(image *im) { free(im->data); free(im); }
+void free_image(image *im) {
+    free(im->data);
+    free(im);
+}
 
 image *copy_image(image *img) {
     image *dest_img = make_empty_image(img->width, img->height, img->channels);
@@ -132,6 +135,9 @@ float get_pixel(image *img, int y, int x, int c) {
     return img->data[location];
 }
 
+void set_get_pixel_mul(image *img, image *dest, int y, int x, int c, float v){
+    set_pixel(dest, y, x, c, get_pixel(img, y, x, c) * v);
+}
 image *image_to_gray(image *img) {
     image *des = make_image(img->height, img->width, 1);
     float mean = 0.0f;
@@ -140,7 +146,7 @@ image *image_to_gray(image *img) {
             mean = (get_pixel(img, y, x, 0) + get_pixel(img, y, x, 1) +
                     get_pixel(img, y, x, 2)) /
                    3.0f;
-            set_pixel(des, y, x, 0, mean / 3.0f);
+            set_pixel(des, y, x, 0, mean);
         }
     }
     return des;

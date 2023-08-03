@@ -1,11 +1,21 @@
 #ifndef MATHX_H
 #define MATHX_H
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
 typedef struct point2di {
     int x;
     int y;
 } point2di;
+
+typedef struct point2df {
+    float x;
+    float y;
+} point2df;
+
+typedef struct minmax {
+    float min;
+    float max;
+} minmax;
 
 #define MAX(x, y) x < y ? y : x
 #define MIN(x, y) x < y ? x : y

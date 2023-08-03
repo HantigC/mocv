@@ -33,8 +33,11 @@ int image_size(image *img);
 // data retrieving
 float get_pixel(image *img, int y, int x, int c);
 void set_pixel(image *img, int y, int x, int c, float v);
+void set_get_pixel_mul(image *img, image * dest, int y, int x, int c, float v);
 
 float rgb_at(image *, int y, int x);
 void clamp_image(image *);
 image *image_to_gray(image *img) ;
+
+
 #endif
