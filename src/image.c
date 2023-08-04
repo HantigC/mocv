@@ -125,6 +125,20 @@ int compute_location(image *img, int y, int x, int c) {
 
 int image_size(image *img) { return img->width * img->height * img->channels; }
 
+rgb *get_rgb(image *img, int y, int x) {
+    rgb *c = (rgb *)malloc(sizeof(rgb));
+    c->r = get_pixel(img, y, x, 0);
+    c->g = get_pixel(img, y, x, 1);
+    c->b = get_pixel(img, y, x, 2);
+    return c;
+}
+
+void set_rgb(image *img, int y, int x, rgb *c) {
+    set_pixel(img, y, x, 0, c->r);
+    set_pixel(img, y, x, 1, c->g);
+    set_pixel(img, y, x, 2, c->b);
+}
+
 void set_pixel(image *img, int y, int x, int c, float value) {
     int location = compute_location(img, y, x, c);
     img->data[location] = value;
@@ -135,9 +149,10 @@ float get_pixel(image *img, int y, int x, int c) {
     return img->data[location];
 }
 
-void set_get_pixel_mul(image *img, image *dest, int y, int x, int c, float v){
+void set_get_pixel_mul(image *img, image *dest, int y, int x, int c, float v) {
     set_pixel(dest, y, x, c, get_pixel(img, y, x, c) * v);
 }
+
 image *image_to_gray(image *img) {
     image *des = make_image(img->height, img->width, 1);
     float mean = 0.0f;
@@ -150,4 +165,52 @@ image *image_to_gray(image *img) {
         }
     }
     return des;
+}
+
+color *make_empty_color() {
+    color *c = (color *)malloc(sizeof(color));
+    return c;
+}
+color *make_gray_color(float gray_level) {
+    color *c = make_empty_color();
+    c->channels = 1;
+    c->data = (float *)malloc(sizeof(float));
+    *(c->data) = gray_level;
+    return c;
+}
+color *copy_rgb_color(rgb *rgb) {
+
+    color *c = make_empty_color();
+    c->channels = 3;
+    c->data = (float *)calloc(sizeof(float), 3);
+    c->data[0] = rgb->r;
+    c->data[1] = rgb->g;
+    c->data[2] = rgb->b;
+    return c;
+}
+color *make_rgb_color(float r, float g, float b) {
+
+    color *c = make_empty_color();
+    c->channels = 3;
+    c->data = (float *)calloc(sizeof(float), 3);
+    c->data[0] = r;
+    c->data[1] = g;
+    c->data[2] = b;
+    return c;
+}
+ok set_color(image *img, int y, int x, color *color) {
+    if (img->channels != color->channels)
+        return FAIL;
+    for (int c = 0; c < color->channels; c++) {
+        set_pixel(img, y, x, c, color->data[c]);
+    }
+    return OK;
+}
+
+rgb *make_rgb(float r, float g, float b) {
+    rgb *color = (rgb *)malloc(sizeof(rgb));
+    color->r = r;
+    color->g = g;
+    color->b = b;
+    return color;
 }

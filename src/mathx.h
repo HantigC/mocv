@@ -2,6 +2,17 @@
 #define MATHX_H
 #include <math.h>
 #include <stdlib.h>
+
+typedef enum bool {
+    FALSE,
+    TRUE,
+} bool;
+
+typedef enum ok {
+    FAIL = -1,
+    OK = 1,
+} ok;
+
 typedef struct point2di {
     int x;
     int y;
