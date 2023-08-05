@@ -16,7 +16,7 @@ int filter_harris_keypoints(void *void_keypoint) {
 }
 
 int main() {
-    image *img = load_image("resources/chess-board.png");
+    image *img = load_image("resources/lena.jpeg");
 
     image *img256 = image_muls(img, 255.0f);
     image *gray = image_to_gray(img256);
@@ -45,7 +45,7 @@ int main() {
     histogram *hist = compute_gray_image_hist(gray, 0);
     print_hist(hist);
     image *hist_imgs =
-        render_histogram(hist, 225, 500, make_rgb_color(0.0f, 0.0f, 1.0f));
+        render_histogram(hist, 300, 400, make_rgb_color(0.0f, 0.0f, 1.0f));
 
     show_image_cv(hist_imgs, "hist", 1);
     show_image_cv(image_muls(x_grad, 1.0f / (255.0f)), "x_grad", 1);

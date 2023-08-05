@@ -46,7 +46,7 @@ void fill_rectangle_tlbr_(image *img, point2di *tl, point2di *br,
                           color *color) {
 
     int h = br->y - tl->y;
-    int w = br->y - tl->y;
+    int w = br->x - tl->x;
     fill_rectangle_yxhw_(img, tl->y, tl->x, h, w, color);
 }
 
