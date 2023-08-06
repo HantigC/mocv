@@ -3,17 +3,23 @@
 
 void draw_rectangle_yxhw_(image *img, int y, int x, int h, int w,
                           color *color) {
-    y = CLAMP(y, 0, img->height);
-    x = CLAMP(x, 0, img->width);
+    y = CLAMP(y, 0, img->height - 1);
+    x = CLAMP(x, 0, img->width - 1);
 
-    for (int i = y; i < h + y; i++) {
+    h = h + y + 1;
+    w = w + x + 1;
+
+    h = CLAMP(h, 0, img->height - 1);
+    w = CLAMP(w, 0, img->width - 1);
+
+    for (int i = y; i < h; i++) {
         set_color(img, i, x, color);
-        set_color(img, i, x + w, color);
+        set_color(img, i, w, color);
     }
 
-    for (int j = x; j < w + x; j++) {
+    for (int j = x; j < w; j++) {
         set_color(img, y, j, color);
-        set_color(img, y + h, j, color);
+        set_color(img, h, j, color);
     }
 }
 void draw_rectangle_yxhw_rgb_(image *img, int y, int x, int h, int w,
@@ -22,10 +28,17 @@ void draw_rectangle_yxhw_rgb_(image *img, int y, int x, int h, int w,
 }
 void fill_rectangle_yxhw_(image *img, int y, int x, int h, int w,
                           color *color) {
-    y = CLAMP(y, 0, img->height);
-    x = CLAMP(x, 0, img->width);
-    for (int i = y; i < h + y + 1; i++) {
-        for (int j = x; j < w + x + 1; j++) {
+    y = CLAMP(y, 0, img->height - 1);
+    x = CLAMP(x, 0, img->width - 1);
+
+    h = h + y + 1;
+    w = w + x + 1;
+
+    h = CLAMP(h, 0, img->height - 1);
+    w = CLAMP(w, 0, img->width - 1);
+
+    for (int i = y; i < h; i++) {
+        for (int j = x; j < w; j++) {
             set_color(img, i, j, color);
         }
     }
@@ -58,7 +71,7 @@ void draw_rectangle_tlbr_rgb_(image *img, point2di *tl, point2di *br,
     draw_rectangle_yxhw_rgb_(img, tl->y, tl->x, h, w, color);
 }
 void fill_rectangle_tlbr_rgb_(image *img, point2di *tl, point2di *br,
-                              rgb *color){
+                              rgb *color) {
     int h = br->y - tl->y;
     int w = br->y - tl->y;
     fill_rectangle_yxhw_rgb_(img, tl->y, tl->x, h, w, color);
