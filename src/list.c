@@ -70,10 +70,13 @@ void *get_first(list *alist) { return alist->first->item; }
 void *get_last(list *alist) { return alist->last->item; }
 
 void free_list(list *alist) {
+    node *next;
     node *node = alist->first;
+
     while (node) {
+        next = node->next;
         free(node);
-        node = node->next;
+        node = next;
     }
     free(alist);
 }
