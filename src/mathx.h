@@ -3,10 +3,10 @@
 #include <math.h>
 #include <stdlib.h>
 
-typedef enum bool {
+typedef enum boolean {
     FALSE,
     TRUE,
-} bool;
+} boolean;
 
 typedef enum ok {
     FAIL = -1,

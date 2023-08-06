@@ -91,17 +91,18 @@ float histogram_max_count(histogram *hist){
 }
 
 image *render_histogram_(image *img, histogram *hist, color *color) {
-    float bin_width =(float)img->width / hist->bins;
+    float offset = 10.0f;
+    float bin_width =(float)(img->width - 2.0f * offset) / hist->bins;
     int bin_height;
     float max_count = histogram_max_count(hist);
     point2di *tl = (point2di *)malloc(sizeof(point2di));
     point2di *br = (point2di *)malloc(sizeof(point2di));
 
     for (int bin = 0; bin < hist->bins; bin++) {
-        tl->x = bin * bin_width;
-        bin_height = img->height * hist->buckets[bin].count / max_count;
+        tl->x = bin * bin_width + offset;
+        bin_height = (img->height - offset) * hist->buckets[bin].count / max_count;
         tl->y = img->height - bin_height;
-        br->x = bin * bin_width + bin_width;
+        br->x = bin * bin_width + bin_width + offset;
         br->y = img->height;
         fill_rectangle_tlbr_(img, tl, br, color);
     }
