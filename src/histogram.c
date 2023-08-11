@@ -34,7 +34,7 @@ histogram *make_hist(int bins, float min_value, float max_value) {
 void init_hist(histogram *hist, int bins, float min_value, float max_value) {
     hist->bins = bins;
     hist->buckets = (bucket *)calloc(bins, sizeof(bucket));
-    hist->step = (max_value - min_value + 1.0f) / bins;
+    hist->step = (max_value - min_value + 0.0000001f) / bins;
     for (int bin = 0; bin < hist->bins; bin++) {
         hist->buckets[bin].start = bin * hist->step;
         hist->buckets[bin].count = 0;
@@ -51,6 +51,7 @@ bucket *copy_bucket(bucket *src) {
 
 void add_to_hist(histogram *hist, float x) {
     int bin = (x - hist->min_value) / hist->step;
+    bin = CLAMP(bin, 0, hist->bins - 1);
     hist->buckets[bin].count += 1.0f;
     hist->total += 1.0f;
 }
