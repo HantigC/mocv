@@ -120,7 +120,7 @@ image *copy_image(image *img) {
 }
 
 int compute_location(image *img, int y, int x, int c) {
-    return y * img->width * img->channels + x * img->channels + c;
+    return c * img->width * img->height + y * img->width + x;
 }
 
 int image_size(image *img) { return img->width * img->height * img->channels; }
@@ -156,8 +156,8 @@ void set_get_pixel_mul(image *img, image *dest, int y, int x, int c, float v) {
 image *image_to_gray(image *img) {
     image *des = make_image(img->height, img->width, 1);
     float mean = 0.0f;
-    for (int y = 0; y < img->height; ++y) {
-        for (int x = 0; x < img->width; ++x) {
+    for (int y = 0; y < des->height; ++y) {
+        for (int x = 0; x < des->width; ++x) {
             mean = (get_pixel(img, y, x, 0) + get_pixel(img, y, x, 1) +
                     get_pixel(img, y, x, 2)) /
                    3.0f;
@@ -213,4 +213,16 @@ rgb *make_rgb(float r, float g, float b) {
     color->g = g;
     color->b = b;
     return color;
+}
+
+image *image_convert_1x3(image *img) {
+    image *dest = make_image(img->height, img->width, 3);
+    for (int y = 0; y < img->height; y++) {
+        for (int x = 0; x < img->width; x++) {
+            set_pixel(dest, y, x, 0, get_pixel(img, y, x, 0));
+            set_pixel(dest, y, x, 1, get_pixel(img, y, x, 0));
+            set_pixel(dest, y, x, 2, get_pixel(img, y, x, 0));
+        }
+    }
+    return dest;
 }

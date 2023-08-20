@@ -4,15 +4,35 @@
 
 extern "C" {
 #include "image.h"
+cv::Vec3b get_rgb_or_gray(image *img, int y, int x, float scalar) {
+    if (img->channels == 3 || img->channels == 4) {
+        return cv::Vec3b((unsigned char)(get_pixel(img, y, x, 2) * scalar),
+                         (unsigned char)(get_pixel(img, y, x, 1) * scalar),
+                         (unsigned char)(get_pixel(img, y, x, 0) * scalar));
+    } else {
+        return cv::Vec3b((unsigned char)(get_pixel(img, y, x, 0) * scalar),
+                         (unsigned char)(get_pixel(img, y, x, 0) * scalar),
+                         (unsigned char)(get_pixel(img, y, x, 0) * scalar));
+    }
+}
 
 cv::Mat image_to_mat(image *im) {
     int i, j;
     cv::Mat m(im->height, im->width, CV_8UC3);
     for (j = 0; j < im->height; ++j) {
         for (i = 0; i < im->width; ++i) {
-            m.at<cv::Vec3b>(j, i) = cv::Vec3b(get_pixel(im, j, i, 2) * 255,
-                                              get_pixel(im, j, i, 1) * 255,
-                                              get_pixel(im, j, i, 0) * 255);
+            m.at<cv::Vec3b>(j, i) = get_rgb_or_gray(im, j, i, 255.0f);
+        }
+    }
+    return m;
+}
+
+cv::Mat image_to_mat_noscale(image *im) {
+    int i, j;
+    cv::Mat m(im->height, im->width, CV_8UC3);
+    for (j = 0; j < im->height; ++j) {
+        for (i = 0; i < im->width; ++i) {
+            m.at<cv::Vec3b>(j, i) = get_rgb_or_gray(im, j, i, 1.0f);
         }
     }
     return m;
@@ -60,8 +80,12 @@ image *load_image_cv(const char *filename, int channels) {
         assert(im->channels == channels);
     return im;
 }
-int show_image_cv(image *im, const char *name, int ms) {
-    cv::Mat m = image_to_mat(im);
+int show_image_cv(image *im, const char *name, int no_scale, int ms) {
+    cv::Mat m;
+    if (no_scale)
+        m = image_to_mat_noscale(im);
+    else
+        m = image_to_mat(im);
     imshow(name, m);
     int c = cv::waitKey(ms);
     if (c != -1)
