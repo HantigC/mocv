@@ -6,7 +6,6 @@ kernel *extract_matrices(image *dx_img, image *dy_image, int neighbourhood_size,
     int half = neighbourhood_size / 2;
     float dx, dy;
     kernel *harris_kernel = make_kernel(2, 2);
-    kernel_fill_inplace(harris_kernel, 0);
     float m00, m01, m10, m11;
     for (int i = -half; i < half + 1; ++i) {
         for (int j = -half; j < half + 1; ++j) {
@@ -43,8 +42,8 @@ list *detect_harris(image *img, int neighbourhood_size, float k) {
     int half = neighbourhood_size / 2;
 
     float R;
-    for (int y = half; y < dy_img->height; ++y) {
-        for (int x = half; x < dy_img->width; ++x) {
+    for (int y = half; y < dy_img->height - half; ++y) {
+        for (int x = half; x < dy_img->width - half; ++x) {
             harris_kernel =
                 extract_matrices(dx_img, dy_img, neighbourhood_size, y, x);
             m00 = kernel_get_value(harris_kernel, 0, 0);
