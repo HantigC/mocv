@@ -46,10 +46,17 @@ minmax *image_get_min_max(image *img, int channel) {
 
 void image_min_max_norm_(image *img) {
     minmax *mm;
+
+    float range, value;
     for (int c = 0; c < img->channels; ++c) {
         mm = image_get_min_max(img, c);
-        image_muls_channel_(img, mm->max - mm->min, c);
-        free(mm);
+        range = mm->max - mm->min;
+        for (int y = 0; y < img->height; y++) {
+            for (int x = 0; x < img->width; x++) {
+                value = (get_pixel(img, y, x, c) - mm->min) / range;
+                set_pixel(img, y, x, c, value);
+            }
+        }
     }
 }
 
@@ -57,13 +64,14 @@ image *image_min_max_norm(image *img) {
     image *dest = make_image_like(img);
 
     minmax *mm;
-    float normalizer;
+    float range, value;
     for (int c = 0; c < img->channels; ++c) {
         mm = image_get_min_max(img, c);
-        normalizer = 1.0f / (mm->max - mm->min);
+        range = mm->max - mm->min;
         for (int y = 0; y < img->height; y++) {
             for (int x = 0; x < img->width; x++) {
-                set_get_pixel_mul(img, dest, y, x, c, normalizer);
+                value = (get_pixel(img, y, x, c) - mm->min) / range;
+                set_pixel(dest, y, x, c, value);
             }
         }
     }
