@@ -19,8 +19,7 @@ enum strategy {
 image *kernel_convolve(image *img, kernel *kernel, enum strategy how,
                        float fill);
 image *kernel_convolve_no_border(image *img, kernel *kernel);
-float apply_kernel_at(image *img, kernel *krn, int y, int x);
-
+float apply_kernel_at(image *img, kernel *krn, int y, int x, int c);
 kernel *make_empty_kernel(int height, int width);
 kernel *make_kernel(int height, int width);
 kernel *kernel_make_sobelx();
@@ -30,7 +29,7 @@ float kernel_get_value(kernel *krnl, int y, int x);
 void kernel_set_value(kernel *krnl, int y, int x, float value);
 int kernel_length(kernel *krnl);
 kernel* kernel_add(kernel *st_kernel, kernel *nd_kernel, int inplace);
-void kernel_fill_inplace(kernel *kernek, float fill_value);
+void kernel_fill_(kernel *kernek, float fill_value);
 
 void free_kernel_content(kernel kernel);
 void free_kernel(kernel *kernel);
