@@ -78,3 +78,46 @@ image *image_min_max_norm(image *img) {
 
     return dest;
 }
+
+image *image_mask_cmp_scalar(image *img, cmp_fn fn, float comparee,
+                             float scalar) {
+    image *mask = make_image_like(img);
+    float pixel;
+    for (int c = 0; c < img->channels; c++) {
+        for (int y = 0; y < img->height; y++) {
+            for (int x = 0; x < img->width; x++) {
+                pixel = get_pixel(img, y, x, c);
+                if (fn(pixel, comparee)) {
+                    set_pixel(mask, y, x, c, scalar);
+                } else {
+                    set_pixel(mask, y, x, c, pixel);
+                }
+            }
+        }
+    }
+    return mask;
+}
+
+boolean lt(float x, float y) { return x < y; }
+
+boolean gt(float x, float y) { return x > y; }
+boolean eq(float x, float y) { return x == y; }
+boolean le(float x, float y) { return x <= y; }
+boolean ge(float x, float y) { return x >= y; }
+
+image *image_mask_lt_scalar(image *img, float x, float scalar) {
+    return image_mask_cmp_scalar(img, lt, x, scalar);
+}
+image *image_mask_le_scalar(image *img, float x, float scalar) {
+    return image_mask_cmp_scalar(img, le, x, scalar);
+}
+image *image_mask_gt_scalar(image *img, float x, float scalar) {
+    return image_mask_cmp_scalar(img, gt, x, scalar);
+}
+image *image_mask_ge_scalar(image *img, float x, float scalar) {
+
+    return image_mask_cmp_scalar(img, ge, x, scalar);
+}
+image *image_mask_eq_scalar(image *img, float x, float scalar) {
+    return image_mask_cmp_scalar(img, eq, x, scalar);
+}
