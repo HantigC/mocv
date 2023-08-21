@@ -155,13 +155,13 @@ void set_get_pixel_mul(image *img, image *dest, int y, int x, int c, float v) {
 
 image *image_to_gray(image *img) {
     image *des = make_image(img->height, img->width, 1);
-    float mean = 0.0f;
+    float gray_value;
     for (int y = 0; y < des->height; ++y) {
         for (int x = 0; x < des->width; ++x) {
-            mean = (get_pixel(img, y, x, 0) + get_pixel(img, y, x, 1) +
-                    get_pixel(img, y, x, 2)) /
-                   3.0f;
-            set_pixel(des, y, x, 0, mean);
+            gray_value = 0.299f * get_pixel(img, y, x, 0) +
+                         0.587f * get_pixel(img, y, x, 1) +
+                         0.114f * get_pixel(img, y, x, 2);
+            set_pixel(des, y, x, 0, gray_value);
         }
     }
     return des;
