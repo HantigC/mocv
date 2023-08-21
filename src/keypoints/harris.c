@@ -1,17 +1,17 @@
 #include "keypoints/harris.h"
 #include "kernel.h"
 
-kernel *extract_matrices(image *dx_img, image *dy_image, int neighbourhood_size,
+kernel *extract_matrices(image *dx_img, image *dy_img, int neighbourhood_size,
                          int y, int x) {
     int half = neighbourhood_size / 2;
     float dx, dy;
     kernel *harris_kernel = make_kernel(2, 2);
     float m00, m01, m10, m11;
-    for (int i = -half; i < half + 1; ++i) {
-        for (int j = -half; j < half + 1; ++j) {
+    for (int i = 0; i < neighbourhood_size; ++i) {
+        for (int j = 0; j < neighbourhood_size; ++j) {
 
-            dy = get_pixel(dy_image, y + i, x + j, 0);
-            dx = get_pixel(dx_img, y + i, x + j, 0);
+            dy = get_pixel(dy_img, y - half + i, x - half + j, 0);
+            dx = get_pixel(dx_img, y - half + i, x - half + j, 0);
 
             m00 = dx * dx;
             m01 = m10 = dy * dx;
@@ -32,8 +32,8 @@ list *detect_harris(image *img, int neighbourhood_size, float k) {
     kernel *sobel_x = kernel_make_sobelx();
     kernel *sobel_y = kernel_make_sobely();
 
-    image *dx_img = kernel_convolve_no_border(img, sobel_x);
-    image *dy_img = kernel_convolve_no_border(img, sobel_y);
+    image *dx_img = kernel_convolve(img, sobel_x, MIRROR, 0.0f);
+    image *dy_img = kernel_convolve(img, sobel_y, MIRROR, 0.0f);
 
     list *keyponts = list_make();
     kernel *harris_kernel;
@@ -42,8 +42,8 @@ list *detect_harris(image *img, int neighbourhood_size, float k) {
     int half = neighbourhood_size / 2;
 
     float R;
-    for (int y = half; y < dy_img->height - half; ++y) {
-        for (int x = half; x < dy_img->width - half; ++x) {
+    for (int y = half; y < dy_img->height - half + 1; ++y) {
+        for (int x = half; x < dy_img->width - half + 1; ++x) {
             harris_kernel =
                 extract_matrices(dx_img, dy_img, neighbourhood_size, y, x);
             m00 = kernel_get_value(harris_kernel, 0, 0);
