@@ -22,7 +22,7 @@ void display_kp(void *v_kp) {
 }
 
 int main() {
-    image *img = load_image("resources/chess-board.png");
+    image *img = load_image("resources/lena.jpeg");
 
     image *gray = image_to_gray(img);
     image *gray3 = image_convert_1x3(gray);
@@ -61,7 +61,9 @@ int main() {
     //                      make_rgb_color(1.0f, 0.0f, 0.0f));
     // show_image_cv(img_sm, "img_sm", 0, 1);
     image_muls_(gray, 255.0f);
+    image *blend_image = img_blend(gray, kp_image, 0.5f);
     show_image_cv(gray, "gray", 1, 1);
+    show_image_cv(blend_image, "blend_image", 1, 1);
     show_image_cv(gray3, "gray3", 0, 1);
     show_image_cv(img, "image", 0, 1);
     image *new_image = image_mask_lt_scalar(gray, 255.0f, 255.0f);
