@@ -29,9 +29,15 @@ float kernel_get_value(kernel *krnl, int y, int x);
 void kernel_set_value(kernel *krnl, int y, int x, float value);
 int kernel_length(kernel *krnl);
 kernel* kernel_add(kernel *st_kernel, kernel *nd_kernel, int inplace);
+kernel *kernel_make_full(int height, int width, int fill_value);
+kernel *kernel_make_ones(int height, int width);
 void kernel_fill_(kernel *kernek, float fill_value);
 
 void free_kernel_content(kernel kernel);
 void free_kernel(kernel *kernel);
+
+
+void kernel_mul_scalar_(kernel *kernel, float scalar);
+
 #endif
 

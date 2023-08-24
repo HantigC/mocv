@@ -226,7 +226,24 @@ void kernel_fill_(kernel *kernel, float fill_value) {
     }
 }
 
+kernel *kernel_make_full(int height, int width, int fill_value) {
+    kernel *kernel = make_kernel(height, width);
+    kernel_fill_(kernel, fill_value);
+    return kernel;
+}
+
+kernel *kernel_make_ones(int height, int width) {
+    return kernel_make_full(height, width, 1.0f);
+}
+
 void free_kernel_content(kernel kernel) { free(kernel.data); }
+
+void kernel_mul_scalar_(kernel *kernel, float scalar){
+    for (int i = 0; i < kernel_length(kernel); i++) {
+        kernel->data[i] = kernel->data[i] * scalar;
+    }
+}
+
 void free_kernel(kernel *kernel) {
     free(kernel->data);
     free(kernel);
