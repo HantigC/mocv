@@ -1,18 +1,23 @@
 #include "keypoints/harris.h"
 #include "kernel.h"
 
-kernel *extract_matrices(image *dx_img, image *dy_img, int neighbourhood_size,
+kernel *extract_matrices(image *dx_img, image *dy_img, kernel *hood_kernel,
                          int y, int x) {
-    int half = neighbourhood_size / 2;
+    int half_height = hood_kernel->height / 2;
+    int half_width = hood_kernel->width / 2;
     float dx, dy;
     kernel *harris_kernel = make_kernel(2, 2);
     float m00, m01, m10, m11;
-    for (int i = 0; i < neighbourhood_size; ++i) {
-        for (int j = 0; j < neighbourhood_size; ++j) {
+    int ky, kx;
+    float weigth;
+    for (int i = 0; i < hood_kernel->height; ++i) {
+        for (int j = 0; j < hood_kernel->width; ++j) {
+            ky = CLAMP(y - half_height + i, 0, dy_img->height);
+            kx = CLAMP(x - half_width + j, 0, dy_img->width);
+            weigth = kernel_get_value(hood_kernel, i, j);
 
-            dy = get_pixel(dy_img, y - half + i, x - half + j, 0);
-            dx = get_pixel(dx_img, y - half + i, x - half + j, 0);
-
+            dy = weigth * get_pixel(dy_img, ky, kx, 0);
+            dx = weigth * get_pixel(dx_img, ky, kx, 0);
             m00 = dx * dx;
             m01 = m10 = dy * dx;
             m11 = dy * dy;
@@ -28,38 +33,55 @@ kernel *extract_matrices(image *dx_img, image *dy_img, int neighbourhood_size,
     }
     return harris_kernel;
 }
-list *detect_harris(image *img, int neighbourhood_size, float k) {
+
+image *compute_cornerness(image *img, kernel *hood_kernel, float alpha) {
+    image *cornerness_img = make_image(img->height, img->width, 1);
+    // compute Ix Iy
     kernel *sobel_x = kernel_make_sobelx();
     kernel *sobel_y = kernel_make_sobely();
-
     image *dx_img = kernel_convolve(img, sobel_x, MIRROR, 0.0f);
     image *dy_img = kernel_convolve(img, sobel_y, MIRROR, 0.0f);
 
-    list *keyponts = list_make();
     kernel *harris_kernel;
     float m00, m01, m10, m11;
     float det, tr;
-    int half = neighbourhood_size / 2;
 
     float R;
-    for (int y = half; y < dy_img->height - half + 1; ++y) {
-        for (int x = half; x < dy_img->width - half + 1; ++x) {
-            harris_kernel =
-                extract_matrices(dx_img, dy_img, neighbourhood_size, y, x);
+    for (int y = 0; y < dy_img->height; ++y) {
+        for (int x = 0; x < dy_img->width; ++x) {
+            harris_kernel = extract_matrices(dx_img, dy_img, hood_kernel, y, x);
             m00 = kernel_get_value(harris_kernel, 0, 0);
             m01 = kernel_get_value(harris_kernel, 0, 1);
             m10 = kernel_get_value(harris_kernel, 1, 0);
             m11 = kernel_get_value(harris_kernel, 1, 1);
             det = m00 * m11 - m01 * m10;
             tr = m00 + m11;
-            R = det - k * tr;
-            list_insert(keyponts, make_keypoint(make_point2di(x, y), R));
+            R = det - alpha * tr;
+            set_pixel(cornerness_img, y, x, 0, R);
             free_kernel(harris_kernel);
         }
     }
     free_image(dx_img);
     free_image(dy_img);
+
     free_kernel(sobel_x);
     free_kernel(sobel_y);
-    return keyponts;
+    return cornerness_img;
+}
+
+image *extract_cornerness(image *img, kernel *hood_kernel, float alpha) {
+    if (hood_kernel == NULL) {
+        hood_kernel = kernel_make_ones(5, 5);
+    }
+    image *cornerness_img = compute_cornerness(img, hood_kernel, alpha);
+    return cornerness_img;
+}
+
+image *detect_harris(image *img, kernel *hood_kernel, float alpha,
+                     int nms_hood) {
+    image *cornerness_img = extract_cornerness(img, hood_kernel, alpha);
+    if (nms_hood > 1) {
+        kp_nms_(cornerness_img, nms_hood);
+    }
+    return cornerness_img;
 }
