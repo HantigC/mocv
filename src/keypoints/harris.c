@@ -77,11 +77,28 @@ image *extract_cornerness(image *img, kernel *hood_kernel, float alpha) {
     return cornerness_img;
 }
 
-image *detect_harris(image *img, kernel *hood_kernel, float alpha,
-                     int nms_hood) {
+image *compute_harris_corner(image *img, kernel *hood_kernel, float alpha,
+                             int nms_hood) {
     image *cornerness_img = extract_cornerness(img, hood_kernel, alpha);
     if (nms_hood > 1) {
         kp_nms_(cornerness_img, nms_hood);
     }
     return cornerness_img;
+}
+list *detect_harris_keypoints(image *img, kernel *hood_kernel, float alpha,
+                              int nms_hood, float threshold) {
+    list *kps_list = list_make();
+    image *cornerness_img =
+        compute_harris_corner(img, hood_kernel, alpha, nms_hood);
+    float confidence;
+    for (int y = 0; y < img->height; y++) {
+        for (int x = 0; x < img->width; x++) {
+            confidence = get_pixel(cornerness_img, y, x, 0);
+            if (get_pixel(cornerness_img, y, x, 0) > threshold) {
+                list_insert(kps_list,
+                            make_keypoint(make_point2di(x, y), confidence));
+            }
+        }
+    }
+    return kps_list;
 }

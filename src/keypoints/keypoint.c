@@ -66,3 +66,35 @@ void kp_nms_(image *kp_img, int nms_hood) {
         }
     }
 }
+
+simple_descriptor *extract_window(const image *img, int y, int x,
+                                  int window_size) {
+    simple_descriptor *descriptor =
+        (simple_descriptor *)malloc(sizeof(simple_descriptor));
+    descriptor->length = window_size * window_size * img->channels;
+    descriptor->data = (float *)calloc(descriptor->length, sizeof(float));
+    int count = 0;
+    int half = window_size / 2;
+    int cy, cx;
+    for (int i = 0; i < window_size; i++) {
+        for (int j = 0; j < window_size; j++) {
+            cy = CLAMP(y - half + i, 0, img->height);
+            cx = CLAMP(x - half + j, 0, img->width);
+            for (int c = 0; c < img->channels; c++) {
+                descriptor->data[count] = get_pixel(img, cy, cx, c);
+                ++count;
+            }
+        }
+    }
+    return descriptor;
+}
+
+void extract_patch_descriptors(const image *img, list *keypoints,
+                               int window_size) {
+    node *node;
+    keypoint *kp;
+    for (node = keypoints->first; node; node = node->next) {
+        kp = (keypoint *)node->item;
+        kp->descriptor = extract_window(img, kp->xy->y, kp->xy->x, window_size);
+    }
+}

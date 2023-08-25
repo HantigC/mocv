@@ -19,7 +19,7 @@ image *make_image(int height, int width, int channels) {
     return img;
 }
 
-image *make_image_like(image *img) {
+image *make_image_like(const image *img) {
     return make_image(img->height, img->width, img->channels);
 }
 
@@ -110,7 +110,7 @@ void free_image(image *im) {
     free(im);
 }
 
-image *copy_image(image *img) {
+image *copy_image(const image *img) {
     image *dest_img = make_empty_image(img->width, img->height, img->channels);
     for (int i = 0; i < image_size(img); ++i) {
         dest_img->data[i] = img->data[i];
@@ -118,11 +118,13 @@ image *copy_image(image *img) {
     return dest_img;
 }
 
-int compute_location(image *img, int y, int x, int c) {
+int compute_location(const image *img, int y, int x, int c) {
     return c * img->width * img->height + y * img->width + x;
 }
 
-int image_size(image *img) { return img->width * img->height * img->channels; }
+int image_size(const image *img) {
+    return img->width * img->height * img->channels;
+}
 
 rgb *get_rgb(image *img, int y, int x) {
     rgb *c = (rgb *)malloc(sizeof(rgb));
@@ -143,7 +145,7 @@ void set_pixel(image *img, int y, int x, int c, float value) {
     img->data[location] = value;
 }
 
-float get_pixel(image *img, int y, int x, int c) {
+float get_pixel(const image *img, int y, int x, int c) {
     int location = compute_location(img, y, x, c);
     return img->data[location];
 }
@@ -152,7 +154,7 @@ void set_get_pixel_mul(image *img, image *dest, int y, int x, int c, float v) {
     set_pixel(dest, y, x, c, get_pixel(img, y, x, c) * v);
 }
 
-image *image_to_gray(image *img) {
+image *image_to_gray(const image *img) {
     image *des = make_image(img->height, img->width, 1);
     float gray_value;
     for (int y = 0; y < des->height; ++y) {
@@ -178,7 +180,7 @@ color *make_color(int channels) {
     return c;
 }
 
-void free_color(color *c){
+void free_color(color *c) {
     free(c->data);
     free(c);
 }
@@ -191,7 +193,7 @@ color *make_gray_color(float gray_level) {
     return c;
 }
 
-color *copy_rgb_color(rgb *rgb) {
+color *copy_rgb_color(const rgb *rgb) {
 
     color *c = make_empty_color();
     c->channels = 3;
@@ -222,7 +224,7 @@ ok set_color(image *img, int y, int x, color *color) {
     return OK;
 }
 
-color *get_color(image *img, int y, int x) {
+color *get_color(const image *img, int y, int x) {
     color *c = make_color(img->channels);
     for (int i = 0; i < img->channels; i++) {
         c->data[i] = get_pixel(img, y, x, i);
@@ -230,7 +232,7 @@ color *get_color(image *img, int y, int x) {
     return c;
 }
 
-void get_color_(image *img, int y, int x, color *c) {
+void get_color_(const image *img, int y, int x, color *c) {
     for (int i = 0; i < img->channels; i++) {
         c->data[i] = get_pixel(img, y, x, i);
     }
@@ -244,7 +246,7 @@ rgb *make_rgb(float r, float g, float b) {
     return color;
 }
 
-image *image_convert_1x3(image *img) {
+image *image_convert_1x3(const image *img) {
     image *dest = make_image(img->height, img->width, 3);
     for (int y = 0; y < img->height; y++) {
         for (int x = 0; x < img->width; x++) {

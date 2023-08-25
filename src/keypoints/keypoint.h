@@ -7,7 +7,13 @@
 typedef struct keypoint {
     point2di *xy;
     float confidence;
+    void *descriptor;
 } keypoint;
+
+typedef struct simple_descriptor {
+    float *data;
+    int length;
+} simple_descriptor;
 
 keypoint *make_empty_keypoint();
 keypoint *make_keypoint(point2di *p, float confidence);
@@ -15,4 +21,6 @@ image *render_keypoints(list *keypoints, image *img);
 
 image *kp_nms(image *kp_img, int nms_hood);
 void kp_nms_(image *kp_img, int nms_hood);
+
+void extract_patch_descriptors(const image *img, list *keypoints, int window_size);
 #endif /* ifndef KEYPOINT_H */

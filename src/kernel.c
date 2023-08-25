@@ -34,11 +34,11 @@ kernel *kernel_make_gaus(int height, int width, float sigma) {
     normalize(gaus->data, kernel_length(gaus), acc, 1);
     return gaus;
 }
-int kernel_compute_location(kernel *krn, int y, int x) {
+int kernel_compute_location(const kernel *krn, int y, int x) {
     return y * krn->width + x;
 }
 
-float kernel_get_value(kernel *krnl, int y, int x) {
+float kernel_get_value(const kernel *krnl, int y, int x) {
     int location = kernel_compute_location(krnl, y, x);
     return krnl->data[location];
 }
@@ -91,7 +91,7 @@ kernel *kernel_make_sobely() {
     return sobel;
 }
 
-float apply_kernel_at(image *img, kernel *krn, int y, int x, int c) {
+float apply_kernel_at(const image *img, const kernel *krn, int y, int x, int c) {
     float acc = 0.0f;
     int half_h = krn->height / 2;
     int half_w = krn->width / 2;
@@ -160,7 +160,7 @@ image *kernel_convolve_no_border(image *img, kernel *kernel) {
     return dest;
 }
 
-image *kernel_convolve(image *img, kernel *kernel, enum strategy how,
+image *kernel_convolve(const image *img, const kernel *kernel, enum strategy how,
                        float fill) {
     image *dest = make_image_like(img);
     int half_w = kernel->width / 2;
