@@ -76,3 +76,24 @@ void fill_rectangle_tlbr_rgb_(image *img, point2di *tl, point2di *br,
     int w = br->y - tl->y;
     fill_rectangle_yxhw_rgb_(img, tl->y, tl->x, h, w, color);
 }
+
+void draw_line_yxyx_(image *img, int start_y, int start_x, int end_y,
+                     int end_x) {
+    float dy = end_y - start_y;
+    float dx = end_x - start_x;
+    float slope = dy / dx;
+}
+
+void draw_x_yx_(image *img, int y, int x, color *color, int length) {
+    set_color(img, y, x, color);
+    for (int i = 1; i < length; i++) {
+        set_color(img, CLAMP(y - i, 0, img->height),
+                  CLAMP(x + i, 0, img->width), color);
+        set_color(img, CLAMP(y + i, 0, img->height),
+                  CLAMP(x + i, 0, img->width), color);
+        set_color(img, CLAMP(y + i, 0, img->height),
+                  CLAMP(x - i, 0, img->width), color);
+        set_color(img, CLAMP(y - i, 0, img->height),
+                  CLAMP(x - i, 0, img->width), color);
+    }
+}

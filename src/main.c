@@ -10,6 +10,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+boolean is_over(color *gray){
+    return gray->data[0] > 25.0f;
+}
+
+void draw_an_x(image *img, int y, int x){
+    draw_x_yx_(img, y, x, make_rgb_color(1.0f, 0.0f, 0.0f), 6);
+}
+
+
 int filter_harris_keypoints(void *void_keypoint) {
     keypoint *keypoint = (struct keypoint *)void_keypoint;
     return keypoint->confidence >= 0.0f && keypoint->confidence <= 100.0f;
@@ -41,8 +50,9 @@ int main() {
     kernel_mul_scalar_(harris_kernel, 9.0f);
 
     image *cornerners_img = extract_cornerness(smoothed_img, harris_kernel, 0.06);
-    image *harris_kps = kp_nms(cornerners_img, 3);
+    image *harris_kps = kp_nms(cornerners_img, 7);
     image *harris_corners = img_where_gt_scalar(harris_kps, 30.0f, 1.0f, 0.0f);
+    imgrgb_where_map_(harris_kps, img, is_over, draw_an_x);
 
     // display_list(harris_kps, display_kp);
     // display_list(harris_corners, display_kp);
@@ -66,10 +76,9 @@ int main() {
     //                      make_rgb_color(1.0f, 0.0f, 0.0f));
     // show_image_cv(img_sm, "img_sm", 0, 1);
     image_muls_(gray, 255.0f);
-    show_image_cv(gray, "gray", 1, 1);
+    // show_image_cv(gray, "gray", 1, 1);
     show_image_cv(cornerners_img, "cornerners_img", 1, 1);
     //show_image_cv(gray3, "gray3", 0, 1);
-    show_image_cv(img, "image", 0, 1);
     //image *new_image = image_mask_lt_scalar(gray, 255.0f, 255.0f);
     //show_image_cv(new_image, "new_image", 1, 0);
     //image *sme = image_convert_1x3(smoothed_img);
@@ -85,8 +94,9 @@ int main() {
 
     //show_image_cv(sx_grad, "sx_grad", 0, 1);
     //show_image_cv(sy_grad, "sy_grad", 0, 0);
-    show_image_cv(harris_kps, "harris_kps", 1, 1);
-    show_image_cv(harris_corners, "harris_corners", 1, 0);
+    // show_image_cv(harris_kps, "harris_kps", 1, 1);
+    show_image_cv(harris_corners, "harris_corners", 1, 1);
+    show_image_cv(img, "image", 0, 0);
     free_image(img);
     free_image(gray);
     free_image(smoothed_img);

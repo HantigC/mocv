@@ -33,7 +33,9 @@ float apply_neighbourhood(image *img, int y, int x, int hood_size) {
     float pixel = get_pixel(img, y, x, 0);
     for (int i = start_y; i < end_y; i++) {
         for (int j = start_x; j < end_x; j++) {
-            if (pixel < get_pixel(img, i, j, 0)) {
+            if (pixel <= get_pixel(img, i, j, 0)) {
+                if (i == y && j == x)
+                    continue;
                 return -99999;
             }
         }

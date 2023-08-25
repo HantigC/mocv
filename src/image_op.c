@@ -291,3 +291,17 @@ image *img_blend(image *st_image, image *nd_image, float alpha) {
     }
     return blend;
 }
+
+void imgrgb_where_map_(image *img, image *dest, cmp_color_fn fn,
+                       maploc_img_fn map_fn) {
+    color *c = make_color(img->channels);
+    for (int y = 0; y < img->height; y++) {
+        for (int x = 0; x < img->width; x++) {
+            get_color_(img, y, x, c);
+            if (fn(c)) {
+                map_fn(dest, y, x);
+            }
+        }
+    }
+    free_color(c);
+}

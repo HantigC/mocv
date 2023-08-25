@@ -4,6 +4,8 @@
 #include "mathx.h"
 
 typedef boolean (*cmp_fn)(float x, float y);
+typedef boolean (*cmp_color_fn)(color *x);
+typedef void (*maploc_img_fn)(image *img, int y, int x);
 void image_muls_(image *, float scalar);
 image *image_muls(image *, float scalar);
 
@@ -69,4 +71,6 @@ image *img_blend_if_le_scalar(image *img, float comparee, image *true_img,
 image *img_blend_if_ge_scalar(image *img, float comparee, image *true_img,
                               image *false_img);
 image *img_blend(image *st_image, image *nd_image, float alpha);
+void imgrgb_where_map_(image *img, image *dest, cmp_color_fn fn, maploc_img_fn map_fn);
+
 #endif

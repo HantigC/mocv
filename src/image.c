@@ -50,7 +50,6 @@ void save_image_stb(image *im, const char *name, int png) {
 }
 
 void save_png(image *im, const char *name) { save_image_stb(im, name, 1); }
-
 void save_image(image *im, const char *name) { save_image_stb(im, name, 0); }
 
 image *load_image_stb(char *filename, int channels) {
@@ -171,6 +170,19 @@ color *make_empty_color() {
     color *c = (color *)malloc(sizeof(color));
     return c;
 }
+
+color *make_color(int channels) {
+    color *c = make_empty_color();
+    c->channels = channels;
+    c->data = (float *)calloc(channels, sizeof(float));
+    return c;
+}
+
+void free_color(color *c){
+    free(c->data);
+    free(c);
+}
+
 color *make_gray_color(float gray_level) {
     color *c = make_empty_color();
     c->channels = 1;
@@ -178,6 +190,7 @@ color *make_gray_color(float gray_level) {
     *(c->data) = gray_level;
     return c;
 }
+
 color *copy_rgb_color(rgb *rgb) {
 
     color *c = make_empty_color();
@@ -188,6 +201,7 @@ color *copy_rgb_color(rgb *rgb) {
     c->data[2] = rgb->b;
     return c;
 }
+
 color *make_rgb_color(float r, float g, float b) {
 
     color *c = make_empty_color();
@@ -198,6 +212,7 @@ color *make_rgb_color(float r, float g, float b) {
     c->data[2] = b;
     return c;
 }
+
 ok set_color(image *img, int y, int x, color *color) {
     if (img->channels != color->channels)
         return FAIL;
@@ -205,6 +220,20 @@ ok set_color(image *img, int y, int x, color *color) {
         set_pixel(img, y, x, c, color->data[c]);
     }
     return OK;
+}
+
+color *get_color(image *img, int y, int x) {
+    color *c = make_color(img->channels);
+    for (int i = 0; i < img->channels; i++) {
+        c->data[i] = get_pixel(img, y, x, i);
+    }
+    return c;
+}
+
+void get_color_(image *img, int y, int x, color *c) {
+    for (int i = 0; i < img->channels; i++) {
+        c->data[i] = get_pixel(img, y, x, i);
+    }
 }
 
 rgb *make_rgb(float r, float g, float b) {

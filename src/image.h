@@ -40,25 +40,30 @@ void free_image(image *im);
 image *copy_image(image *img);
 
 int image_size(image *img);
-image* image_convert_1x3(image *img);
+image *image_convert_1x3(image *img);
 // data retrieving
 float get_pixel(image *img, int y, int x, int c);
 void set_pixel(image *img, int y, int x, int c, float v);
 void set_get_pixel_mul(image *img, image *dest, int y, int x, int c, float v);
 
-rgb* get_rgb(image *, int y, int x);
+rgb *get_rgb(image *, int y, int x);
 void set_rgb(image *, int y, int x, rgb *);
+
+color *get_color(image *, int y, int x);
+
 void clamp_image(image *);
 image *image_to_gray(image *img);
 
-rgb* make_rgb(float r, float g, float b);
-color* make_empty_color();
-color* make_gray_color(float gray_level);
-color* copy_rgb_color(rgb *rgb);
-color* make_rgb_color(float r, float g, float b);
-
+rgb *make_rgb(float r, float g, float b);
+color *make_empty_color();
+color *make_gray_color(float gray_level);
+color *copy_rgb_color(rgb *rgb);
+color *make_rgb_color(float r, float g, float b);
 
 ok set_color(image *img, int y, int x, color *c);
-
+color *get_color(image *, int y, int x);
+void get_color_(image *img, int y, int x, color *c);
+color *make_color(int channels);
+void free_color(color *c);
 
 #endif
