@@ -54,6 +54,7 @@ int main() {
         extract_cornerness(smoothed_img, harris_kernel, 0.06);
     image *harris_kps = kp_nms(cornerners_img, 7);
     image *harris_corners = img_where_gt_scalar(harris_kps, 30.0f, 1.0f, 0.0f);
+    draw_line_yxyx_(img, 10, 10, 50, 13, make_rgb_color(0.0f, 1.0f, 0.0f), 2);
     imgrgb_where_map_(harris_kps, img, is_over, draw_an_x);
 
     // display_list(harris_kps, display_kp);
