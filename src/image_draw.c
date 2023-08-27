@@ -173,3 +173,26 @@ void draw_x_yx_(image *img, int y, int x, color *color, int length) {
                   CLAMP(x - i, 0, img->width), color);
     }
 }
+
+image *combine_images_on_x(image *img_st, image *img_nd) {
+    int height = MAX(img_st->height, img_nd->height);
+    image *img =
+        make_image(height, img_st->width + img_nd->width, img_st->channels);
+    for (int c = 0; c < img_st->channels; c++) {
+        for (int y = 0; y < img_st->height; y++) {
+            for (int x = 0; x < img_st->width; x++) {
+                set_pixel(img, y, x, c, get_pixel(img_st, y, x, c));
+            }
+        }
+    }
+
+    for (int c = 0; c < img_nd->channels; c++) {
+        for (int y = 0; y < img_nd->height; y++) {
+            for (int x = 0; x < img_nd->width; x++) {
+                set_pixel(img, y, img_st->width + x, c,
+                          get_pixel(img_nd, y, x, c));
+            }
+        }
+    }
+    return img;
+}

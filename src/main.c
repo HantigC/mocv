@@ -28,9 +28,10 @@ void display_kp(void *v_kp) {
 }
 
 int main() {
-    image *img = load_image("resources/Rainier1.png");
+    image *reiner1 = load_image("resources/Rainier1.png");
+    image *reiner2 = load_image("resources/Rainier2.png");
 
-    image *gray = image_to_gray(img);
+    image *gray = image_to_gray(reiner1);
     kernel *gaus = kernel_make_gaus(3, 3, 5.0f);
     kernel *sobel_x = kernel_make_sobelx();
     kernel *sobel_y = kernel_make_sobely();
@@ -54,8 +55,11 @@ int main() {
         extract_cornerness(smoothed_img, harris_kernel, 0.06);
     image *harris_kps = kp_nms(cornerners_img, 7);
     image *harris_corners = img_where_gt_scalar(harris_kps, 30.0f, 1.0f, 0.0f);
-    draw_line_yxyx_(img, 10, 10, 50, 13, make_rgb_color(0.0f, 1.0f, 0.0f), 2);
-    imgrgb_where_map_(harris_kps, img, is_over, draw_an_x);
+    draw_line_yxyx_(reiner1, 10, 10, 50, 20, make_rgb_color(0.0f, 1.0f, 0.0f), 2);
+    imgrgb_where_map_(harris_kps, reiner1, is_over, draw_an_x);
+    image *combined = combine_images_on_x(reiner1, reiner2);
+
+
 
     // display_list(harris_kps, display_kp);
     // display_list(harris_corners, display_kp);
@@ -81,6 +85,7 @@ int main() {
     image_muls_(gray, 255.0f);
     // show_image_cv(gray, "gray", 1, 1);
     show_image_cv(cornerners_img, "cornerners_img", 1, 1);
+    show_image_cv(combined, "combined", 0, 1);
     // show_image_cv(gray3, "gray3", 0, 1);
     // image *new_image = image_mask_lt_scalar(gray, 255.0f, 255.0f);
     // show_image_cv(new_image, "new_image", 1, 0);
@@ -99,8 +104,8 @@ int main() {
     // show_image_cv(sy_grad, "sy_grad", 0, 0);
     //  show_image_cv(harris_kps, "harris_kps", 1, 1);
     show_image_cv(harris_corners, "harris_corners", 1, 1);
-    show_image_cv(img, "image", 0, 0);
-    free_image(img);
+    show_image_cv(reiner1, "image", 0, 0);
+    free_image(reiner1);
     free_image(gray);
     free_image(smoothed_img);
 

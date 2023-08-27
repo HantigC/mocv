@@ -20,5 +20,6 @@ void draw_line_yxyx_(image *img, int start_y, int start_x, int end_y,
                      int end_x, color *c, int thickness);
 void draw_x_yx_(image *img, int y, int x, color *color, int length);
 
+image *combine_images_on_x(image *img_st, image *img_nd);
 
 #endif
