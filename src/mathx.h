@@ -29,6 +29,7 @@ typedef struct minmax {
 } minmax;
 
 #define MAX(x, y) x < y ? y : x
+#define ABS(x) x >= 0 ? x : -x
 #define MIN(x, y) x < y ? x : y
 #define CLAMP(x, min_v, max_v) (MIN(MAX(x, min_v), max_v))
 #define IS_BETWEEN(x, min_v, max_v) (x < min_v ? 0 : ((x > max_v) ? 0 : 1))

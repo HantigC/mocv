@@ -1,4 +1,5 @@
 #include "keypoints/keypoint.h"
+#include "image_draw.h"
 
 keypoint *make_empty_keypoint() { return (keypoint *)malloc(sizeof(keypoint)); }
 keypoint *make_keypoint(point2di *p, float confidence) {
@@ -8,7 +9,7 @@ keypoint *make_keypoint(point2di *p, float confidence) {
     return keypoint;
 }
 
-image *render_keypoints(list *keypoints, image *img) {
+image *render_keypoint_pixels(list *keypoints, image *img) {
     node *node = keypoints->first;
     image *kp_image = make_image(img->height, img->width, 1);
     keypoint *kp;
@@ -89,12 +90,76 @@ simple_descriptor *extract_window(const image *img, int y, int x,
     return descriptor;
 }
 
-void extract_patch_descriptors(const image *img, list *keypoints,
-                               int window_size) {
+void extract_patch_descriptors_(const image *img, list *keypoints,
+                                int window_size) {
     node *node;
     keypoint *kp;
     for (node = keypoints->first; node; node = node->next) {
         kp = (keypoint *)node->item;
         kp->descriptor = extract_window(img, kp->xy->y, kp->xy->x, window_size);
+    }
+}
+
+match *make_empty_match() {
+    match *m = (match *)malloc(sizeof(match));
+    return m;
+}
+
+match *make_match(void *st_kp, void *nd_kp, float distace) {
+    match *m = make_empty_match();
+    m->st_kp = st_kp;
+    m->nd_kp = nd_kp;
+    m->ditance = distace;
+    return m;
+}
+
+list *match_keypoints(list *st_keypoints, list *nd_keypoints, distance_fn fn) {
+    list *matches = list_make();
+    keypoint **st_kps = (keypoint **)list_to_array(st_keypoints);
+    keypoint **nd_kps = (keypoint **)list_to_array(nd_keypoints);
+    float min_distance = -1.0f;
+    int min_index = 0;
+    float distance;
+    for (int st_cnt = 0; st_cnt < st_keypoints->length; st_cnt++) {
+        min_distance = (float)0x7FFFFFFF;
+        min_index = 0;
+        for (int nd_cnt = 0; nd_cnt < nd_keypoints->length; nd_cnt++) {
+            distance = fn(st_kps[st_cnt], nd_kps[nd_cnt]);
+            if (min_distance > distance) {
+                min_distance = distance;
+                min_index = nd_cnt;
+            }
+        }
+        list_insert(matches, make_match(st_kps[st_cnt], nd_kps[min_index],
+                                        min_distance));
+    }
+    return matches;
+}
+
+image *render_matches(image *st_img, image *nd_img, list *matches, color *c,
+                      int length, color *line_color, int thikness) {
+    image *img = combine_images_on_x(st_img, nd_img);
+    keypoint *st_kp, *nd_kp;
+    match *kp_match;
+    node *node = matches->first;
+    while (node) {
+        kp_match = (match *)node->item;
+        st_kp = kp_match->st_kp;
+        nd_kp = kp_match->nd_kp;
+        draw_x_pointi_(img, st_kp->xy, c, length);
+        draw_x_yx_(img, nd_kp->xy->y, nd_kp->xy->x + st_img->width, c, length);
+        draw_line_yxyx_(img, st_kp->xy->y, st_kp->xy->x, nd_kp->xy->y,
+                        nd_kp->xy->x + nd_img->width, line_color, thikness);
+        node = node->next;
+    }
+    return img;
+}
+void render_keyppoint_(image *img, list *keypoints, color *c, int length) {
+    node *node = keypoints->first;
+    keypoint *kp;
+    while (node) {
+        kp = (keypoint *)node->item;
+        draw_x_pointi_(img, kp->xy, c, length);
+        node = node->next;
     }
 }

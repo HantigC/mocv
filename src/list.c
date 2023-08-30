@@ -94,3 +94,14 @@ list *list_filter(p_fn fn, list *a_list) {
     }
     return dest_list;
 }
+
+void **list_to_array(list *list) {
+    void **a = calloc(list->length, sizeof(void *));
+    node *node = list->first;
+    int count = 0;
+    while (node) {
+        a[count++] = node->item;
+        node = node->next;
+    }
+    return a;
+}

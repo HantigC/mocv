@@ -64,6 +64,9 @@ color *copy_rgb_color(const rgb *rgb);
 color *make_rgb_color(float r, float g, float b);
 
 color *make_color(int channels);
+color *make_red_unit();
+color *make_blue_unit();
+color *make_green_unit();
 void free_color(color *c);
 
 #endif

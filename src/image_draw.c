@@ -160,6 +160,12 @@ void draw_line_yxyx_(image *img, int start_y, int start_x, int end_y, int end_x,
     }
 }
 
+void draw_line_pp_(image *img, point2di *start_p, point2di *end_p, color *c,
+                   int thickness) {
+    draw_line_yxyx_(img, start_p->y, start_p->x, end_p->y, end_p->x, c,
+                    thickness);
+}
+
 void draw_x_yx_(image *img, int y, int x, color *color, int length) {
     set_color(img, y, x, color);
     for (int i = 1; i < length; i++) {
@@ -172,6 +178,11 @@ void draw_x_yx_(image *img, int y, int x, color *color, int length) {
         set_color(img, CLAMP(y - i, 0, img->height),
                   CLAMP(x - i, 0, img->width), color);
     }
+}
+
+void draw_x_pointi_(image *img, point2di *p, color *color, int length) {
+    int y = p->y, x = p->x;
+    draw_x_yx_(img, y, x, color, length);
 }
 
 image *combine_images_on_x(image *img_st, image *img_nd) {

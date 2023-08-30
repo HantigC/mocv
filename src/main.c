@@ -26,40 +26,52 @@ void display_kp(void *v_kp) {
     printf("keypoint(x=%d, y=%d, confidence=%f)", kp->xy->x, kp->xy->y,
            kp->confidence);
 }
+list *foo(image *img) {
+    image *gray = image_to_gray(img);
+
+    kernel *gaus = kernel_make_gaus(3, 3, 5.0f);
+    image *smoothed_img = kernel_convolve(gray, gaus, MIRROR, 255.0f);
+    kernel *harris_kernel = kernel_make_gaus(3, 3, 2.0f);
+    kernel_mul_scalar_(harris_kernel, 9.0f);
+    list *harris_kps_list =
+        detect_harris_keypoints(smoothed_img, harris_kernel, 0.06, 5, 30.0f);
+    extract_patch_descriptors_(img, harris_kps_list, 5);
+
+    free_image(gray);
+    free_image(smoothed_img);
+    free_kernel(gaus);
+    free_kernel(harris_kernel);
+
+    return harris_kps_list;
+}
+
+float l1_d(void *k1, void *k2) {
+    keypoint *kp1 = (keypoint *)k1;
+    keypoint *kp2 = (keypoint *)k2;
+    simple_descriptor *d1 = (simple_descriptor *)kp1->descriptor;
+    simple_descriptor *d2 = (simple_descriptor *)kp2->descriptor;
+    float total = 0.0f;
+    float x;
+    for (int i = 0; i < d1->length; i++) {
+        x = d1->data[i] - d2->data[i];
+        total += ABS(x);
+    }
+    return total / d1->length;
+}
 
 int main() {
     image *reiner1 = load_image("resources/Rainier1.png");
     image *reiner2 = load_image("resources/Rainier2.png");
 
-    image *gray = image_to_gray(reiner1);
-    kernel *gaus = kernel_make_gaus(3, 3, 5.0f);
-    kernel *sobel_x = kernel_make_sobelx();
-    kernel *sobel_y = kernel_make_sobely();
-
-    image *smoothed_img = kernel_convolve(gray, gaus, MIRROR, 255.0f);
-
-    image *x_grad = kernel_convolve(gray, sobel_x, MIRROR, 255.0f);
-    image *y_grad = kernel_convolve(gray, sobel_y, MIRROR, 255.0f);
-
-    image *sx_grad = kernel_convolve(smoothed_img, sobel_x, MIRROR, 255.0f);
     // image *img_sm = kernel_convolve(img, gaus, MIRROR, 255.0f);
-    image *sy_grad = kernel_convolve(smoothed_img, sobel_y, MIRROR, 255.0f);
-    kernel *harris_kernel = kernel_make_gaus(3, 3, 2.0f);
-    kernel_mul_scalar_(harris_kernel, 9.0f);
 
-    list *harris_kps_list =
-        detect_harris_keypoints(smoothed_img, harris_kernel, 0.06, 5, 30.0f);
-
-    extract_patch_descriptors(smoothed_img, harris_kps_list, 5);
-    image *cornerners_img =
-        extract_cornerness(smoothed_img, harris_kernel, 0.06);
-    image *harris_kps = kp_nms(cornerners_img, 7);
-    image *harris_corners = img_where_gt_scalar(harris_kps, 30.0f, 1.0f, 0.0f);
-    draw_line_yxyx_(reiner1, 10, 10, 50, 20, make_rgb_color(0.0f, 1.0f, 0.0f), 2);
-    imgrgb_where_map_(harris_kps, reiner1, is_over, draw_an_x);
-    image *combined = combine_images_on_x(reiner1, reiner2);
-
-
+    list *harris_kps1 = foo(reiner1);
+    list *harris_kps2 = foo(reiner2);
+    // render_keyppoint_(reiner1, harris_kps1, make_red_unit(), 5);
+    // image *combined = combine_images_on_x(reiner1, reiner2);
+    list *matches = match_keypoints(harris_kps1, harris_kps2, l1_d);
+    image *combined = render_matches(reiner1, reiner2, matches, make_red_unit(),
+                                     5, make_green_unit(), 1);
 
     // display_list(harris_kps, display_kp);
     // display_list(harris_corners, display_kp);
@@ -67,24 +79,13 @@ int main() {
     // image *kp_image = render_keypoints(harris_kps, smoothed_img);
     // image *kp_image2 = render_keypoints(harris_corners, smoothed_img);
 
-    image_min_max_norm_(cornerners_img);
-    image_muls_channel_(cornerners_img, 255.0f, 0);
-
-    image_min_max_norm_(harris_kps);
-    image_muls_channel_(harris_kps, 255.0f, 0);
-
-    image_min_max_norm_(harris_corners);
-    image_muls_channel_(harris_corners, 255.0f, 0);
-
     // fill_rectangle_yxhw_(img, 10, 10, 50, 20, make_rgb_color(1.0f, 0.0f,
     // 0.0f));
 
     // draw_rectangle_yxhw_(img, 10, 50, 100, 200,
     //                      make_rgb_color(1.0f, 0.0f, 0.0f));
     // show_image_cv(img_sm, "img_sm", 0, 1);
-    image_muls_(gray, 255.0f);
     // show_image_cv(gray, "gray", 1, 1);
-    show_image_cv(cornerners_img, "cornerners_img", 1, 1);
     show_image_cv(combined, "combined", 0, 1);
     // show_image_cv(gray3, "gray3", 0, 1);
     // image *new_image = image_mask_lt_scalar(gray, 255.0f, 255.0f);
@@ -103,15 +104,6 @@ int main() {
     // show_image_cv(sx_grad, "sx_grad", 0, 1);
     // show_image_cv(sy_grad, "sy_grad", 0, 0);
     //  show_image_cv(harris_kps, "harris_kps", 1, 1);
-    show_image_cv(harris_corners, "harris_corners", 1, 1);
     show_image_cv(reiner1, "image", 0, 0);
     free_image(reiner1);
-    free_image(gray);
-    free_image(smoothed_img);
-
-    free_image(x_grad);
-    free_image(y_grad);
-    free_image(sx_grad);
-    free_image(sy_grad);
-    free_image(harris_kps);
 }
