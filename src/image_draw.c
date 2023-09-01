@@ -185,25 +185,14 @@ void draw_x_pointi_(image *img, point2di *p, color *color, int length) {
     draw_x_yx_(img, y, x, color, length);
 }
 
-image *combine_images_on_x(image *img_st, image *img_nd) {
-    int height = MAX(img_st->height, img_nd->height);
-    image *img =
-        make_image(height, img_st->width + img_nd->width, img_st->channels);
-    for (int c = 0; c < img_st->channels; c++) {
-        for (int y = 0; y < img_st->height; y++) {
-            for (int x = 0; x < img_st->width; x++) {
-                set_pixel(img, y, x, c, get_pixel(img_st, y, x, c));
-            }
-        }
+void draw_xs_pointi_(image *img, list *points, color *color, int length){
+    node *n = points->first;
+    point2di *p;
+    while(n){
+        p = (point2di *) n->item;
+        draw_x_pointi_(img, p, color, length);
+        n = n->next;
     }
-
-    for (int c = 0; c < img_nd->channels; c++) {
-        for (int y = 0; y < img_nd->height; y++) {
-            for (int x = 0; x < img_nd->width; x++) {
-                set_pixel(img, y, img_st->width + x, c,
-                          get_pixel(img_nd, y, x, c));
-            }
-        }
-    }
-    return img;
 }
+
+
