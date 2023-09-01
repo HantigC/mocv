@@ -105,11 +105,12 @@ match *make_empty_match() {
     return m;
 }
 
-match *make_match(void *st_kp, void *nd_kp, float distace) {
+match *make_match(void *st_kp, void *nd_kp, float distace, int st_index,
+                  int nd_index) {
     match *m = make_empty_match();
     m->st_kp = st_kp;
     m->nd_kp = nd_kp;
-    m->ditance = distace;
+    m->distance = distace;
     return m;
 }
 
@@ -131,30 +132,12 @@ list *match_keypoints(list *st_keypoints, list *nd_keypoints, distance_fn fn) {
             }
         }
         list_insert(matches, make_match(st_kps[st_cnt], nd_kps[min_index],
-                                        min_distance));
+                                        min_distance, st_cnt, min_index));
     }
     return matches;
 }
 
-image *render_matches(image *st_img, image *nd_img, list *matches, color *c,
-                      int length, color *line_color, int thikness) {
-    image *img = combine_images_on_x(st_img, nd_img);
-    keypoint *st_kp, *nd_kp;
-    match *kp_match;
-    node *node = matches->first;
-    while (node) {
-        kp_match = (match *)node->item;
-        st_kp = kp_match->st_kp;
-        nd_kp = kp_match->nd_kp;
-        draw_x_pointi_(img, st_kp->xy, c, length);
-        draw_x_yx_(img, nd_kp->xy->y, nd_kp->xy->x + st_img->width, c, length);
-        draw_line_yxyx_(img, st_kp->xy->y, st_kp->xy->x, nd_kp->xy->y,
-                        nd_kp->xy->x + nd_img->width, line_color, thikness);
-        node = node->next;
-    }
-    return img;
-}
-void render_keyppoint_(image *img, list *keypoints, color *c, int length) {
+void render_keyppoints_(image *img, list *keypoints, color *c, int length) {
     node *node = keypoints->first;
     keypoint *kp;
     while (node) {
@@ -162,4 +145,16 @@ void render_keyppoint_(image *img, list *keypoints, color *c, int length) {
         draw_x_pointi_(img, kp->xy, c, length);
         node = node->next;
     }
+}
+
+list *collect_point_from_kps(list *keypoints) {
+    node *node = keypoints->first;
+    list *points_list = list_make();
+    keypoint *kp;
+    while (node) {
+        kp = (keypoint *)node->item;
+        list_insert(points_list, kp->xy);
+        node = node->next;
+    }
+    return points_list;
 }
