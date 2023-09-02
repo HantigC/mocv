@@ -1,5 +1,6 @@
 #include "keypoints/keypoint.h"
 #include "image_draw.h"
+#include "stdx.h"
 
 keypoint *make_empty_keypoint() { return (keypoint *)malloc(sizeof(keypoint)); }
 keypoint *make_keypoint(point2di *p, float confidence) {
@@ -111,11 +112,24 @@ match *make_match(void *st_kp, void *nd_kp, float distace, int st_index,
     m->st_kp = st_kp;
     m->nd_kp = nd_kp;
     m->distance = distace;
+    m->st_index = st_index;
+    m->nd_index = nd_index;
     return m;
 }
 
+enum CMP match_cmp(void *x, void *y) {
+    match *xp = (match *)x;
+    match *yp = (match *)y;
+    if (xp->distance < yp->distance) {
+        return LT;
+    } else if (xp->distance == yp->distance) {
+        return EQ;
+    }
+    return GT;
+}
+
 list *match_keypoints(list *st_keypoints, list *nd_keypoints, distance_fn fn) {
-    list *matches = list_make();
+    list *matches_list = list_make();
     keypoint **st_kps = (keypoint **)list_to_array(st_keypoints);
     keypoint **nd_kps = (keypoint **)list_to_array(nd_keypoints);
     float min_distance = -1.0f;
@@ -131,10 +145,24 @@ list *match_keypoints(list *st_keypoints, list *nd_keypoints, distance_fn fn) {
                 min_index = nd_cnt;
             }
         }
-        list_insert(matches, make_match(st_kps[st_cnt], nd_kps[min_index],
-                                        min_distance, st_cnt, min_index));
+        list_insert(matches_list, make_match(st_kps[st_cnt], nd_kps[min_index],
+                                             min_distance, st_cnt, min_index));
     }
-    return matches;
+    free(st_kps);
+    free(nd_kps);
+    match **matches = (match **)list_to_array(matches_list);
+    qsort_vector_(match_cmp, matches, matches_list->length);
+    int *seen = (int *)calloc(matches_list->length, sizeof(int));
+    list *injective_matches = list_make();
+    for (int i = 0; i < matches_list->length; i++) {
+        if (seen[matches[i]->nd_index] != -1) {
+            list_insert(injective_matches, matches[i]);
+        }
+
+        seen[matches[i]->nd_index] = -1;
+    }
+
+    return injective_matches;
 }
 
 void render_keyppoints_(image *img, list *keypoints, color *c, int length) {

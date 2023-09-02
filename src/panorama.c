@@ -60,11 +60,10 @@ point2di project_point(matrix m, point2di p) {
 list *project_points(matrix m, list *point_list) {
     node *node = point_list->first;
     list *points_list_res = list_make();
-    keypoint *kp;
-    point2di pp;
+    point2di pp, *p;
     while (node) {
-        kp = (keypoint *)node->item;
-        pp = project_point(m, *kp->xy);
+        p = (point2di *)node->item;
+        pp = project_point(m, *p);
         list_insert(points_list_res, make_point2di(pp.x, pp.y));
         node = node->next;
     }
@@ -79,27 +78,32 @@ matrix compute_homography(match **matches, int *indeces, int n) {
     matrix M = make_matrix(2 * n, 8);
     matrix b = make_matrix(2 * n, 1);
     keypoint *kp1, *kp2;
+    double *row;
     for (int i = 0; i < n; i++) {
         kp1 = (keypoint *)matches[i]->st_kp;
         kp2 = (keypoint *)matches[i]->nd_kp;
-        M.data[2 * i][0] = kp1->xy->x;
-        M.data[2 * i][1] = kp1->xy->y;
-        M.data[2 * i][2] = 1;
-        M.data[2 * i][3] = 0;
-        M.data[2 * i][4] = 0;
-        M.data[2 * i][5] = 0;
-        M.data[2 * i][6] = -kp1->xy->x * kp2->xy->x;
-        M.data[2 * i][7] = -kp1->xy->y * kp2->xy->x;
+        row = M.data[2 * i];
         b.data[2 * i][0] = kp2->xy->x;
+        row[0] = kp1->xy->x;
+        row[1] = kp1->xy->y;
+        row[2] = 1;
+        row[3] = 0;
+        row[4] = 0;
+        row[5] = 0;
+        row[6] = -kp1->xy->x * kp2->xy->x;
+        row[7] = -kp1->xy->y * kp2->xy->x;
 
-        M.data[2 * i + 1][0] = 0;
-        M.data[2 * i + 1][1] = 0;
-        M.data[2 * i + 1][2] = 0;
-        M.data[2 * i + 1][3] = kp1->xy->x;
-        M.data[2 * i + 1][4] = kp1->xy->y;
-        M.data[2 * i + 1][5] = 1;
-        M.data[2 * i + 1][6] = -kp1->xy->x * kp2->xy->y;
-        M.data[2 * i + 1][7] = -kp1->xy->y * kp2->xy->y;
+
+        row = M.data[2 * i + 1];
+        row[0] = 0;
+        row[1] = 0;
+        row[2] = 0;
+        row[3] = kp1->xy->x;
+        row[4] = kp1->xy->y;
+        row[5] = 1;
+        row[6] = -kp1->xy->x * kp2->xy->y;
+        row[7] = -kp1->xy->y * kp2->xy->y;
+
         b.data[2 * i + 1][0] = kp2->xy->y;
     }
     matrix a = solve_system(M, b);
@@ -136,4 +140,26 @@ int count_inliers(matrix H, match **matches, int nm, float threshold) {
         }
     }
     return total;
+}
+
+matrix RANSAC(match **matches, int nm, float thresh, int k, int cutoff) {
+    int *range = int_range(nm);
+    matrix H, best_H;
+    shuffle_int_array_(range, nm);
+    int num_inliners, best_num_inliners;
+    best_H = compute_homography(matches, range, 4);
+    for (int i = 1; i < k; i++) {
+        shuffle_int_array_(range, nm);
+        H = compute_homography(matches, range, 4);
+        num_inliners = count_inliers(H, matches, nm, thresh);
+        if (num_inliners > best_num_inliners) {
+            best_num_inliners = num_inliners;
+            free_matrix(best_H);
+            best_H = H;
+        }
+        if (best_num_inliners > cutoff) {
+            return best_H;
+        }
+    }
+    return best_H;
 }

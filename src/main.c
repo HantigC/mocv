@@ -1,3 +1,4 @@
+#include "array.h"
 #include "image.h"
 #include "image_draw.h"
 #include "image_op.h"
@@ -8,9 +9,9 @@
 #include "keypoints/keypoint.h"
 #include "list.h"
 #include "panorama.h"
+#include "stdx.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "array.h"
 
 boolean is_over(color *gray) { return gray->data[0] > 25.0f; }
 
@@ -36,7 +37,7 @@ list *foo(image *img) {
     kernel *harris_kernel = kernel_make_gaus(3, 3, 2.0f);
     kernel_mul_scalar_(harris_kernel, 9.0f);
     list *harris_kps_list =
-        detect_harris_keypoints(smoothed_img, harris_kernel, 0.06, 7, 10.0f);
+        detect_harris_keypoints(smoothed_img, harris_kernel, 0.06, 7, 20.0f);
     extract_patch_descriptors_(img, harris_kps_list, 7);
 
     free_image(gray);
@@ -61,8 +62,30 @@ float l1_d(void *k1, void *k2) {
     return total / d1->length;
 }
 
+int **just_make_it() {
+    int **a = (int **)calloc(6, sizeof(int *));
+    for (int i = 0; i < 6; i++) {
+        a[i] = (int *)calloc(1, sizeof(int));
+    }
+    a[0][0] = 4;
+    a[1][0] = 2;
+    a[2][0] = 5;
+    a[3][0] = 1;
+    a[4][0] = 6;
+    a[5][0] = 3;
+    return a;
+}
 
-
+enum CMP int_cmp(void *x, void *y) {
+    int *xp = (int *)x;
+    int *yp = (int *)y;
+    if (*xp < *yp) {
+        return LT;
+    } else if (*xp == *yp) {
+        return EQ;
+    }
+    return GT;
+}
 
 int main() {
     image *reiner1 = load_image("resources/Rainier1.png");
@@ -75,18 +98,22 @@ int main() {
     // render_keyppoint_(reiner1, harris_kps1, make_red_unit(), 5);
     // image *combined = combine_images_on_x(reiner1, reiner2);
     list *matches_list = match_keypoints(harris_kps1, harris_kps2, l1_d);
-    image *combined = render_matches(reiner1, reiner2, matches_list, make_red_unit(),
-                                     5, make_green_unit(), 1);
-
+    image *combined = render_matches(reiner1, reiner2, matches_list,
+                                     make_red_unit(), 5, make_green_unit(), 1);
     render_keyppoints_(reiner1, harris_kps1, make_red_unit(), 5);
     render_keyppoints_(reiner2, harris_kps2, make_red_unit(), 5);
     match **matches = (match **)list_to_array(matches_list);
     int *range = int_range(matches_list->length);
     shuffle_int_array_(range, matches_list->length);
-    matrix H = compute_homography(matches, range, 6);
-    keypoint *kp = (keypoint *) get_first(harris_kps1);
+
+    matrix H = RANSAC(matches, matches_list->length, 10, 29, 100);
+    keypoint *kp = (keypoint *)get_first(harris_kps1);
     point2di p = project_point(H, *kp->xy);
     draw_x_pointi_(reiner2, &p, make_green_unit(), 5);
+    list *points = collect_point_from_kps(harris_kps1);
+    list *projected_points = project_points(H, points);
+    draw_xs_pointi_(reiner2, projected_points, make_green_unit(), 5);
+    int **v = just_make_it();
 
     // display_list(harris_kps, display_kp);
     // display_list(harris_corners, display_kp);
@@ -119,7 +146,7 @@ int main() {
     // show_image_cv(sx_grad, "sx_grad", 0, 1);
     // show_image_cv(sy_grad, "sy_grad", 0, 0);
     //  show_image_cv(harris_kps, "harris_kps", 1, 1);
-    show_image_cv(reiner1, "reiner1", 0, 0);
+    show_image_cv(reiner1, "reiner1", 0, 1);
     show_image_cv(reiner2, "reiner2", 0, 0);
     free_image(reiner1);
 }

@@ -77,7 +77,7 @@ image *image_min_max_norm(image *img) {
     return dest;
 }
 
-image *image_mask_scalar(image *img, cmp_fn fn, float comparee, float scalar) {
+image *image_mask_scalar(image *img, float_eq_fn fn, float comparee, float scalar) {
     image *mask = make_image_like(img);
     float pixel;
     for (int c = 0; c < img->channels; c++) {
@@ -95,7 +95,7 @@ image *image_mask_scalar(image *img, cmp_fn fn, float comparee, float scalar) {
     return mask;
 }
 
-image *img_mask_cmp_img(image *img, cmp_fn fn, image *comparee, float scalar) {
+image *img_mask_cmp_img(image *img, float_eq_fn fn, image *comparee, float scalar) {
     image *mask = make_image_like(img);
     float pixel1, pixel2;
     for (int c = 0; c < img->channels; c++) {
@@ -154,7 +154,7 @@ image *img_mask_eq_img(image *img, image *comparee, float scalar) {
     return img_mask_cmp_img(img, eq, comparee, scalar);
 }
 
-image *img_where_scalar(image *img, cmp_fn fn, float comparee, float true_value,
+image *img_where_scalar(image *img, float_eq_fn fn, float comparee, float true_value,
                         float false_value) {
     image *mask = make_image_like(img);
     float pixel;
@@ -195,7 +195,7 @@ image *img_where_ge_scalar(image *img, float comparee, float true_value,
     return img_where_scalar(img, ge, comparee, true_value, false_value);
 }
 
-image *img_where_img(image *img, cmp_fn fn, image *comparee, float true_value,
+image *img_where_img(image *img, float_eq_fn fn, image *comparee, float true_value,
                      float false_value) {
     image *mask = make_image_like(img);
     float pixel1, pixel2;
@@ -236,7 +236,7 @@ image *img_where_ge_img(image *img, image *comparee, float true_value,
     return img_where_img(img, ge, comparee, true_value, false_value);
 }
 
-image *img_blend_if_scalar(image *img, cmp_fn fn, float comparee,
+image *img_blend_if_scalar(image *img, float_eq_fn fn, float comparee,
                            image *true_img, image *false_img) {
     image *mask = make_image_like(img);
     float pixel1;
