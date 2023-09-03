@@ -93,7 +93,6 @@ matrix compute_homography(match **matches, int *indeces, int n) {
         row[6] = -kp1->xy->x * kp2->xy->x;
         row[7] = -kp1->xy->y * kp2->xy->x;
 
-
         row = M.data[2 * i + 1];
         row[0] = 0;
         row[1] = 0;
@@ -147,10 +146,10 @@ matrix RANSAC(match **matches, int nm, float thresh, int k, int cutoff) {
     matrix H, best_H;
     shuffle_int_array_(range, nm);
     int num_inliners, best_num_inliners;
-    best_H = compute_homography(matches, range, 4);
+    best_H = compute_homography(matches, range, 10);
     for (int i = 1; i < k; i++) {
         shuffle_int_array_(range, nm);
-        H = compute_homography(matches, range, 4);
+        H = compute_homography(matches, range, 10);
         num_inliners = count_inliers(H, matches, nm, thresh);
         if (num_inliners > best_num_inliners) {
             best_num_inliners = num_inliners;
@@ -162,4 +161,48 @@ matrix RANSAC(match **matches, int nm, float thresh, int k, int cutoff) {
         }
     }
     return best_H;
+}
+
+image *combine_on_homography(matrix H, image *st_image, image *nd_image) {
+    matrix Hinv = matrix_invert(H);
+    point2di pinv00 = project_point(Hinv, *make_point2di(0, 0));
+    point2di pinv0w = project_point(Hinv, *make_point2di(nd_image->width, 0));
+    point2di pinvh0 = project_point(Hinv, *make_point2di(0, nd_image->height));
+    point2di pinvhw =
+        project_point(Hinv, *make_point2di(nd_image->width, nd_image->height));
+
+    point2di pv00 = *make_point2di(0, 0);
+    point2di pv0w = *make_point2di(st_image->width, 0);
+    point2di pvh0 = *make_point2di(0, st_image->height);
+    point2di pvhw = *make_point2di(st_image->width, st_image->height);
+    int min_x = min_int(8, pinv00.x, pinvhw.x, pinvh0.x, pinv0w.x, pv00.x,
+                        pvhw.x, pvh0.x, pv0w.x);
+    int min_y = min_int(8, pinv00.y, pinvhw.y, pinvh0.y, pinv0w.y, pv00.y,
+                        pvhw.y, pvh0.y, pv0w.y);
+
+    int max_x = max_int(8, pinv00.x, pinvhw.x, pinvh0.x, pinv0w.x, pv00.x,
+                        pvhw.x, pvh0.x, pv0w.x);
+    int max_y = max_int(8, pinv00.y, pinvhw.y, pinvh0.y, pinv0w.y, pv00.y,
+                        pvhw.y, pvh0.y, pv0w.y);
+    int height = max_y - min_y;
+    int width = max_x - min_x;
+    image *combination = make_image(height, width, st_image->channels);
+    color *c = make_red_unit();
+    for (int y = 0; y < st_image->height; y++) {
+        for (int x = 0; x < st_image->width; x++) {
+            get_color_(st_image, y, x, c);
+            set_color(combination, y - min_y, x - min_x, c);
+        }
+    }
+
+    point2di pp;
+    for (int y = 0; y < nd_image->height; y++) {
+        for (int x = 0; x < nd_image->width; x++) {
+            get_color_(nd_image, y, x, c);
+            pp = project_point(Hinv, *make_point2di(x, y));
+            set_color(combination, pp.y - min_y, pp.x - min_x, c);
+        }
+    }
+
+    return combination;
 }

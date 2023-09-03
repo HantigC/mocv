@@ -37,7 +37,7 @@ list *foo(image *img) {
     kernel *harris_kernel = kernel_make_gaus(3, 3, 2.0f);
     kernel_mul_scalar_(harris_kernel, 9.0f);
     list *harris_kps_list =
-        detect_harris_keypoints(smoothed_img, harris_kernel, 0.06, 7, 20.0f);
+        detect_harris_keypoints(smoothed_img, harris_kernel, 0.06, 7, 30.0f);
     extract_patch_descriptors_(img, harris_kps_list, 7);
 
     free_image(gray);
@@ -106,15 +106,18 @@ int main() {
     int *range = int_range(matches_list->length);
     shuffle_int_array_(range, matches_list->length);
 
-    matrix H = RANSAC(matches, matches_list->length, 10, 29, 100);
-    keypoint *kp = (keypoint *)get_first(harris_kps1);
-    point2di p = project_point(H, *kp->xy);
-    draw_x_pointi_(reiner2, &p, make_green_unit(), 5);
-    list *points = collect_point_from_kps(harris_kps1);
-    list *projected_points = project_points(H, points);
-    draw_xs_pointi_(reiner2, projected_points, make_green_unit(), 5);
-    int **v = just_make_it();
+    matrix H = RANSAC(matches, matches_list->length, 2, 50, 100);
+    matrix Hinv = matrix_invert(H);
 
+    list *points1 = collect_point_from_kps(harris_kps1);
+    list *projected_points = project_points(H, points1);
+    draw_xs_pointi_(reiner2, projected_points, make_green_unit(), 5);
+
+
+    list *points2 = collect_point_from_kps(harris_kps2);
+    list *projected_points2 = project_points(Hinv, points2);
+    draw_xs_pointi_(reiner1, projected_points2, make_green_unit(), 5);
+    image *comination = combine_on_homography(H, reiner1, reiner2);
     // display_list(harris_kps, display_kp);
     // display_list(harris_corners, display_kp);
 
@@ -128,6 +131,7 @@ int main() {
     //                      make_rgb_color(1.0f, 0.0f, 0.0f));
     // show_image_cv(img_sm, "img_sm", 0, 1);
     // show_image_cv(gray, "gray", 1, 1);
+    show_image_cv(comination, "comination", 0, 1);
     show_image_cv(combined, "combined", 0, 1);
     // show_image_cv(gray3, "gray3", 0, 1);
     // image *new_image = image_mask_lt_scalar(gray, 255.0f, 255.0f);

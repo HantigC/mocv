@@ -24,3 +24,29 @@ point2di *make_point2di(int x, int y) {
     p->y = y;
     return p;
 }
+int min_int(int cnt, ...) {
+    va_list ap;
+    int minimum;
+    va_start(ap, cnt);
+    minimum = va_arg(ap, int);
+    int current;
+    for (int i = 1; i < cnt; i++) {
+        current = va_arg(ap, int);
+        minimum = MIN(minimum, current);
+    }
+    va_end(ap);
+    return minimum;
+}
+int max_int(int cnt, ...) {
+    va_list ap;
+    int maximum;
+    va_start(ap, cnt);
+    maximum = va_arg(ap, int);
+    int current;
+    for (int i = 1; i < cnt; i++) {
+        current = va_arg(ap, int);
+        maximum = MAX(maximum, current);
+    }
+    va_end(ap);
+    return maximum;
+}
