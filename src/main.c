@@ -100,8 +100,8 @@ int main() {
     list *matches_list = match_keypoints(harris_kps1, harris_kps2, l1_d);
     image *combined = render_matches(reiner1, reiner2, matches_list,
                                      make_red_unit(), 5, make_green_unit(), 1);
-    render_keyppoints_(reiner1, harris_kps1, make_red_unit(), 5);
-    render_keyppoints_(reiner2, harris_kps2, make_red_unit(), 5);
+    // render_keyppoints_(reiner1, harris_kps1, make_red_unit(), 5);
+    // render_keyppoints_(reiner2, harris_kps2, make_red_unit(), 5);
     match **matches = (match **)list_to_array(matches_list);
     int *range = int_range(matches_list->length);
     shuffle_int_array_(range, matches_list->length);
@@ -111,12 +111,12 @@ int main() {
 
     list *points1 = collect_point_from_kps(harris_kps1);
     list *projected_points = project_points(H, points1);
-    draw_xs_pointi_(reiner2, projected_points, make_green_unit(), 5);
+    // draw_xs_pointi_(reiner2, projected_points, make_green_unit(), 5);
 
 
     list *points2 = collect_point_from_kps(harris_kps2);
     list *projected_points2 = project_points(Hinv, points2);
-    draw_xs_pointi_(reiner1, projected_points2, make_green_unit(), 5);
+    // draw_xs_pointi_(reiner1, projected_points2, make_green_unit(), 5);
     image *comination = combine_on_homography(H, reiner1, reiner2);
     // display_list(harris_kps, display_kp);
     // display_list(harris_corners, display_kp);

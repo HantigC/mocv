@@ -196,11 +196,14 @@ image *combine_on_homography(matrix H, image *st_image, image *nd_image) {
     }
 
     point2di pp;
-    for (int y = 0; y < nd_image->height; y++) {
-        for (int x = 0; x < nd_image->width; x++) {
-            get_color_(nd_image, y, x, c);
-            pp = project_point(Hinv, *make_point2di(x, y));
-            set_color(combination, pp.y - min_y, pp.x - min_x, c);
+    for (int y = min_y; y < max_y; y++) {
+        for (int x = min_x; x < max_x; x++) {
+            pp = project_point(H, *make_point2di(x, y));
+            if (pp.x >= 0 && pp.x < nd_image->width && pp.y >= 0 &&
+                pp.y < nd_image->height) {
+                get_color_(nd_image, pp.y, pp.x, c);
+                set_color(combination, y - min_y, x - min_x, c);
+            }
         }
     }
 
