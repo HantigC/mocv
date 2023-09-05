@@ -169,14 +169,10 @@ void draw_line_pp_(image *img, point2di *start_p, point2di *end_p, color *c,
 void draw_x_yx_(image *img, int y, int x, color *color, int length) {
     set_color(img, y, x, color);
     for (int i = 1; i < length; i++) {
-        set_color(img, CLAMP(y - i, 0, img->height),
-                  CLAMP(x + i, 0, img->width), color);
-        set_color(img, CLAMP(y + i, 0, img->height),
-                  CLAMP(x + i, 0, img->width), color);
-        set_color(img, CLAMP(y + i, 0, img->height),
-                  CLAMP(x - i, 0, img->width), color);
-        set_color(img, CLAMP(y - i, 0, img->height),
-                  CLAMP(x - i, 0, img->width), color);
+        set_color_safe(img, y - i, x + i, color);
+        set_color_safe(img, y + i, x + i, color);
+        set_color_safe(img, y + i, x - i, color);
+        set_color_safe(img, y - i, x - i, color);
     }
 }
 
@@ -185,14 +181,12 @@ void draw_x_pointi_(image *img, point2di *p, color *color, int length) {
     draw_x_yx_(img, y, x, color, length);
 }
 
-void draw_xs_pointi_(image *img, list *points, color *color, int length){
+void draw_xs_pointi_(image *img, list *points, color *color, int length) {
     node *n = points->first;
     point2di *p;
-    while(n){
-        p = (point2di *) n->item;
+    while (n) {
+        p = (point2di *)n->item;
         draw_x_pointi_(img, p, color, length);
         n = n->next;
     }
 }
-
-

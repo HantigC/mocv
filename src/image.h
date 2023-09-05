@@ -48,11 +48,18 @@ image *image_convert_1x3(const image *img);
 // data retrieving
 float get_pixel(const image *img, int y, int x, int c);
 void set_pixel(image *img, int y, int x, int c, float v);
+
+void set_pixel_safe(image *img, int y, int x, int c, float v);
 void set_get_pixel_mul(image *img, image *dest, int y, int x, int c, float v);
+float get_pixel_safe(const image *img, int y, int x, int c);
 
 ok set_color(image *img, int y, int x, color *c);
 color *get_color(const image *img, int y, int x);
 void get_color_(const image *img, int y, int x, color *c);
+
+ok set_color_safe(image *img, int y, int x, color *c);
+color *get_color_safe(const image *img, int y, int x);
+void get_color_safe_(const image *img, int y, int x, color *c);
 
 rgb *get_rgb(image *, int y, int x);
 void set_rgb(image *, int y, int x, rgb *);

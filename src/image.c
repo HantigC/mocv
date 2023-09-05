@@ -150,6 +150,12 @@ float get_pixel(const image *img, int y, int x, int c) {
     return img->data[location];
 }
 
+float get_pixel_safe(const image *img, int y, int x, int c) {
+    y = CLAMP(y, 0, img->height - 1);
+    x = CLAMP(x, 0, img->width - 1);
+    return get_pixel(img, y, x, c);
+}
+
 void set_get_pixel_mul(image *img, image *dest, int y, int x, int c, float v) {
     set_pixel(dest, y, x, c, get_pixel(img, y, x, c) * v);
 }
@@ -214,6 +220,19 @@ color *make_rgb_color(float r, float g, float b) {
     c->data[2] = b;
     return c;
 }
+void set_pixel_safe(image *img, int y, int x, int c, float v) {
+    y = CLAMP(y, 0, img->height - 1);
+    x = CLAMP(x, 0, img->width - 1);
+    set_pixel(img, y, x, c, v);
+}
+ok set_color_safe(image *img, int y, int x, color *color) {
+    if (img->channels != color->channels)
+        return FAIL;
+    for (int c = 0; c < color->channels; c++) {
+        set_pixel_safe(img, y, x, c, color->data[c]);
+    }
+    return OK;
+}
 
 ok set_color(image *img, int y, int x, color *color) {
     if (img->channels != color->channels)
@@ -232,9 +251,22 @@ color *get_color(const image *img, int y, int x) {
     return c;
 }
 
+color *get_color_safe(const image *img, int y, int x) {
+    color *c = make_color(img->channels);
+    for (int i = 0; i < img->channels; i++) {
+        c->data[i] = get_pixel_safe(img, y, x, i);
+    }
+    return c;
+}
+
 void get_color_(const image *img, int y, int x, color *c) {
     for (int i = 0; i < img->channels; i++) {
         c->data[i] = get_pixel(img, y, x, i);
+    }
+}
+void get_color_safe_(const image *img, int y, int x, color *c) {
+    for (int i = 0; i < img->channels; i++) {
+        c->data[i] = get_pixel_safe(img, y, x, i);
     }
 }
 
@@ -257,8 +289,6 @@ image *image_convert_1x3(const image *img) {
     }
     return dest;
 }
-
-
 
 color *make_red_unit() { return make_rgb_color(1.0f, 0.0f, 0.0f); }
 color *make_blue_unit() { return make_rgb_color(0.0f, 0.0f, 1.0f); }

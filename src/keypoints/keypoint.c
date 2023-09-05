@@ -83,7 +83,7 @@ simple_descriptor *extract_window(const image *img, int y, int x,
             cy = CLAMP(y - half + i, 0, img->height);
             cx = CLAMP(x - half + j, 0, img->width);
             for (int c = 0; c < img->channels; c++) {
-                descriptor->data[count] = get_pixel(img, cy, cx, c);
+                descriptor->data[count] = get_pixel_safe(img, cy, cx, c);
                 ++count;
             }
         }
