@@ -37,7 +37,7 @@ list *foo(image *img) {
     kernel *harris_kernel = kernel_make_gaus(3, 3, 2.0f);
     kernel_mul_scalar_(harris_kernel, 9.0f);
     list *harris_kps_list =
-        detect_harris_keypoints(smoothed_img, harris_kernel, 0.06, 7, 30.0f);
+        detect_harris_keypoints(smoothed_img, harris_kernel, 0.06, 7, 20.0f);
     extract_patch_descriptors_(img, harris_kps_list, 7);
 
     free_image(gray);
@@ -87,70 +87,52 @@ enum CMP int_cmp(void *x, void *y) {
     return GT;
 }
 
+list *extract_keypoint_images(list *images_list) {
+    list *keypoints_list = list_make();
+    node *n = images_list->first;
+    while (n) {
+        list_insert(keypoints_list, foo(n->item));
+        n = n->next;
+    }
+    return keypoints_list;
+}
+
+list *load_images(list *filenames_list) {
+    list *images_list = list_make();
+    node *n = filenames_list->first;
+    while (n) {
+        list_insert(images_list, load_image((char *)n->item));
+        n = n->next;
+    }
+    return images_list;
+}
+
 int main() {
     image *reiner1 = load_image("resources/Rainier1.png");
     image *reiner2 = load_image("resources/Rainier2.png");
+    image *reiner3 = load_image("resources/Rainier3.png");
+    image *reiner4 = load_image("resources/Rainier4.png");
+    image *reiner5 = load_image("resources/Rainier5.png");
+    list *filename_list = list_make();
+    list_insert(filename_list, "resources/Rainier2.png");
+    list_insert(filename_list, "resources/Rainier3.png");
+    list_insert(filename_list, "resources/Rainier1.png");
+    list *kps = foo(reiner4);
+    list *images_list = load_images(filename_list);
+    list *keypoints_list = extract_keypoint_images(images_list);
+    image *all_combined =
+        combine_pano(images_list, keypoints_list, l1_d, 4, 40, 100);
+    color *red = make_red_unit();
+    color *green = make_green_unit();
+    render_keyppoints_(all_combined, keypoints_list->first->item, red, 5);
+    render_keyppoints_(all_combined, keypoints_list->first->next->item, green, 5);
+    render_keyppoints_(reiner4, kps, green, 5);
 
-    // image *img_sm = kernel_convolve(img, gaus, MIRROR, 255.0f);
-
-    list *harris_kps1 = foo(reiner1);
-    list *harris_kps2 = foo(reiner2);
-    // render_keyppoint_(reiner1, harris_kps1, make_red_unit(), 5);
-    // image *combined = combine_images_on_x(reiner1, reiner2);
-    list *matches_list = match_keypoints(harris_kps1, harris_kps2, l1_d);
-    image *combined = render_matches(reiner1, reiner2, matches_list,
-                                     make_red_unit(), 5, make_green_unit(), 1);
-    // render_keyppoints_(reiner1, harris_kps1, make_red_unit(), 5);
-    // render_keyppoints_(reiner2, harris_kps2, make_red_unit(), 5);
-    match **matches = (match **)list_to_array(matches_list);
-    int *range = int_range(matches_list->length);
-    shuffle_int_array_(range, matches_list->length);
-
-    matrix H = RANSAC(matches, matches_list->length, 2, 50, 100);
-    matrix Hinv = matrix_invert(H);
-
-    list *points1 = collect_point_from_kps(harris_kps1);
-    list *projected_points = project_points(H, points1);
-    // draw_xs_pointi_(reiner2, projected_points, make_green_unit(), 5);
-
-
-    list *points2 = collect_point_from_kps(harris_kps2);
-    list *projected_points2 = project_points(Hinv, points2);
-    // draw_xs_pointi_(reiner1, projected_points2, make_green_unit(), 5);
-    image *comination = combine_on_homography(H, reiner1, reiner2);
-    // display_list(harris_kps, display_kp);
-    // display_list(harris_corners, display_kp);
-
-    // image *kp_image = render_keypoints(harris_kps, smoothed_img);
-    // image *kp_image2 = render_keypoints(harris_corners, smoothed_img);
-
-    // fill_rectangle_yxhw_(img, 10, 10, 50, 20, make_rgb_color(1.0f, 0.0f,
-    // 0.0f));
-
-    // draw_rectangle_yxhw_(img, 10, 50, 100, 200,
-    //                      make_rgb_color(1.0f, 0.0f, 0.0f));
-    // show_image_cv(img_sm, "img_sm", 0, 1);
-    // show_image_cv(gray, "gray", 1, 1);
-    show_image_cv(comination, "comination", 0, 1);
-    show_image_cv(combined, "combined", 0, 1);
-    // show_image_cv(gray3, "gray3", 0, 1);
-    // image *new_image = image_mask_lt_scalar(gray, 255.0f, 255.0f);
-    // show_image_cv(new_image, "new_image", 1, 0);
-    // image *sme = image_convert_1x3(smoothed_img);
-    // show_image_cv(smoothed_img, "smoothed_img", 0, 1);
-    // show_image_cv(sme, "sme", 0, 0);
-
-    // histogram *hist = compute_gray_image_hist(gray, 0);
-    // image *hist_imgs =
-    //     render_histogram(hist, 300, 400, make_rgb_color(0.0f, 0.0f, 255.0f));
-    // show_image_cv(hist_imgs, "hist", 1, 1);
-    // show_image_cv(x_grad, "x_grad", 0, 1);
-    // show_image_cv(y_grad, "y_grad", 0, 1);
-
-    // show_image_cv(sx_grad, "sx_grad", 0, 1);
-    // show_image_cv(sy_grad, "sy_grad", 0, 0);
-    //  show_image_cv(harris_kps, "harris_kps", 1, 1);
     show_image_cv(reiner1, "reiner1", 0, 1);
-    show_image_cv(reiner2, "reiner2", 0, 0);
+    show_image_cv(reiner2, "reiner2", 0, 1);
+    show_image_cv(reiner3, "reiner3", 0, 1);
+    show_image_cv(reiner4, "reiner4", 0, 1);
+    show_image_cv(reiner5, "reiner5", 0, 1);
+    show_image_cv(all_combined, "all_combined", 0, 0);
     free_image(reiner1);
 }

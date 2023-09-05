@@ -105,3 +105,19 @@ void **list_to_array(list *list) {
     }
     return a;
 }
+
+list *copy_list(list *l) {
+    list *lc = list_make();
+    node *n = l->first;
+    while (n) {
+        list_insert(lc, n->item);
+        n = n->next;
+    }
+    return lc;
+}
+
+void concat_2_lists_(list *l1, list *l2) {
+    l1->last->next = l2->first;
+    l1->last = l2->last;
+    l1->length += l2->length;
+}

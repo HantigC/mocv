@@ -1,6 +1,7 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 #include "mathx.h"
+#include "rect.h"
 typedef struct image {
     float *data;
     int width;
@@ -26,6 +27,8 @@ int image_area(image *);
 image *make_empty_image(int height, int width, int channels);
 image *make_image(int height, int width, int channels);
 image *make_image_like(const image *);
+
+rect image_image_bounding(image img1, image img2);
 
 // load images
 image *load_image(char *filename);

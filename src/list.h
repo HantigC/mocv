@@ -33,6 +33,8 @@ void *pop_first(list *);
 void *pop_last(list *);
 
 node *next_node(node *node);
+list *copy_list(list *l);
+void concat_2_lists_(list *l1, list *l2);
 
 void *get_first(list *);
 void *get_last(list *);
