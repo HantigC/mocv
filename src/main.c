@@ -37,7 +37,7 @@ list *foo(image *img) {
     kernel *harris_kernel = kernel_make_gaus(3, 3, 2.0f);
     kernel_mul_scalar_(harris_kernel, 9.0f);
     list *harris_kps_list =
-        detect_harris_keypoints(smoothed_img, harris_kernel, 0.06, 7, 15.0f);
+        detect_harris_keypoints(smoothed_img, harris_kernel, 0.06, 7, 20.0f);
     extract_patch_descriptors_(img, harris_kps_list, 7);
 
     free_image(gray);
@@ -112,8 +112,8 @@ int main() {
     color *red = make_red_unit();
     color *green = make_green_unit();
 
-    image *reiner1 = load_image("resources/Rainier2.png");
-    image *reiner2 = load_image("resources/Rainier6.png");
+    image *reiner1 = load_image("resources/field1.jpeg");
+    image *reiner2 = load_image("resources/field2.jpeg");
 
     list *kps = foo(reiner1);
     list *kps2 = foo(reiner2);
@@ -125,16 +125,15 @@ int main() {
         render_matches(reiner1, reiner2, matches, red, 5, green, 1);
 
     list *filename_list = list_make();
-    list_insert(filename_list, "resources/Rainier1.png");
     list_insert(filename_list, "resources/Rainier2.png");
+    list_insert(filename_list, "resources/Rainier1.png");
     list_insert(filename_list, "resources/Rainier3.png");
-    list_insert(filename_list, "resources/Rainier6.png");
     // list_insert(filename_list, "resources/Rainier4.png");
     // list_insert(filename_list, "resources/Rainier1.png");
     list *images_list = load_images(filename_list);
     list *keypoints_list = extract_keypoint_images(images_list);
     image *all_combined =
-        combine_pano(images_list, keypoints_list, l1_d, 2, 20, 100);
+        combine_pano(images_list, keypoints_list, l1_d, 20, 50, 100, 10);
 
     show_image_cv(reiner1, "reiner1", 0, 1);
     show_image_cv(reiner2, "reiner2", 0, 1);

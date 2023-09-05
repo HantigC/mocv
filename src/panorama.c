@@ -143,15 +143,20 @@ int count_inliers(matrix H, match **matches, int nm, float threshold) {
     return total;
 }
 
-matrix RANSAC(match **matches, int nm, float thresh, int k, int cutoff) {
+matrix RANSAC(match **matches, int nm, float thresh, int k, int cutoff,
+              int no_points) {
+    matrix none = {0};
+    if (no_points > nm) {
+        return none;
+    }
     int *range = int_range(nm);
     matrix H, best_H;
     shuffle_int_array_(range, nm);
     int num_inliners, best_num_inliners;
-    best_H = compute_homography(matches, range, 5);
+    best_H = compute_homography(matches, range, no_points);
     for (int i = 1; i < k; i++) {
         shuffle_int_array_(range, nm);
-        H = compute_homography(matches, range, 5);
+        H = compute_homography(matches, range, no_points);
         num_inliners = count_inliers(H, matches, nm, thresh);
         if (num_inliners > best_num_inliners) {
             best_num_inliners = num_inliners;
@@ -273,7 +278,7 @@ list *extract_kps_from_matches(list kp_list1, list kp_list2, matrix H,
 }
 
 image *combine_pano(list *image_list, list *keypoints_list, distance_fn fn,
-                    int aligment_thresh, int iterations, int cutoff) {
+                    int aligment_thresh, int iterations, int cutoff, int no_points)  {
     assert(image_list->length == keypoints_list->length);
     image **images = (image **)list_to_array(image_list);
     list **keypoints = (list **)list_to_array(keypoints_list);
@@ -286,7 +291,7 @@ image *combine_pano(list *image_list, list *keypoints_list, distance_fn fn,
         matches_list = match_keypoints(matched_kps, keypoints[i], fn);
         matches = (match **)list_to_array(matches_list);
         matrix H = RANSAC(matches, matches_list->length, aligment_thresh,
-                          iterations, cutoff);
+                          iterations, cutoff, no_points);
         bbox = _extract_bounds(*combined, *images[i], H);
         combined = combine_on_homography(H, combined, images[i]);
         matched_kps = extract_kps_from_matches(*matched_kps, *keypoints[i], H,

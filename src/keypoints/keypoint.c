@@ -151,19 +151,21 @@ list *match_keypoints(list *st_keypoints, list *nd_keypoints, distance_fn fn) {
     free(st_kps);
     free(nd_kps);
     match **matches = (match **)list_to_array(matches_list);
-    qsort_vector_(match_cmp, matches, matches_list->length);
-    int *seen = (int *)calloc(matches_list->length, sizeof(int));
+    qsort_vector_(match_cmp, (void **)matches, matches_list->length);
+    int *seen = (int *)calloc(nd_keypoints->length, sizeof(int));
     list *injective_matches = list_make();
+    int nd_index;
     for (int i = 0; i < matches_list->length; i++) {
-        if (seen[matches[i]->nd_index] != -1) {
+        nd_index = matches[i]->nd_index;
+        if (seen[nd_index] != 1)
             list_insert(injective_matches, matches[i]);
-            seen[matches[i]->nd_index] = -1;
-        } else {
-            seen[matches[i]->nd_index] = -1;
+        else {
             free(matches[i]);
         }
+        seen[nd_index] = 1;
     }
     free(matches);
+    free(seen);
 
     return injective_matches;
 }

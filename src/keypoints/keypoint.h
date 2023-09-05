@@ -41,5 +41,6 @@ void render_keyppoints_(image *img, list *descritors, color *c, int length);
 
 list *collect_point_from_kps(list *keypoints);
 
+void free_match(match *);
 
 #endif /* ifndef KEYPOINT_H */
