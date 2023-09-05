@@ -157,10 +157,13 @@ list *match_keypoints(list *st_keypoints, list *nd_keypoints, distance_fn fn) {
     for (int i = 0; i < matches_list->length; i++) {
         if (seen[matches[i]->nd_index] != -1) {
             list_insert(injective_matches, matches[i]);
+            seen[matches[i]->nd_index] = -1;
+        } else {
+            seen[matches[i]->nd_index] = -1;
+            free(matches[i]);
         }
-
-        seen[matches[i]->nd_index] = -1;
     }
+    free(matches);
 
     return injective_matches;
 }
