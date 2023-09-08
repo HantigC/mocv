@@ -4,6 +4,7 @@
 #include "kernel.h"
 #include "mathx.h"
 #include "matrix.h"
+#include <stdio.h>
 
 image *compute_image_dt(image image_t0, image image_t1) {
     image *image_dt = make_image(image_t0.height, image_t0.width, 1);
@@ -106,8 +107,18 @@ image extract_lk_flow(image image_t0, image image_t1, kernel weight,
 }
 
 rgb rgb_from_flow(float dy, float dx) {
-    float angle = 6 * (atan2(dy, dx) / 6.28 + .5);
+
+    float angle = atan2(dy, dx);
+    if (angle < 0) {
+        angle = 6.28 + angle;
+    }
+    angle = 6 * (angle / 6.28);
     int index = floor(angle);
+    if (angle < 0) {
+        printf("dx=%f, dy=%f", dx, dy);
+        printf("angle = %f", angle);
+        printf("index = %d", index);
+    }
     float f = angle - index;
     float r, g, b;
     if (index == 0) {

@@ -119,9 +119,10 @@ int main() {
     image *sdog_b = load_image("resources/dog_b_small.jpeg");
     image *dog_a_gray = image_to_gray(dog_a);
     image *dog_b_gray = image_to_gray(dog_b);
-    kernel *krn = kernel_make_full(15, 15, 1);
+    kernel *krn = kernel_make_gaus(15, 15, 2);
+    kernel_mul_scalar_(krn, 15 * 15);
     image flow_img = extract_lk_flow(*dog_a_gray, *dog_b_gray, *krn, 8);
-    draw_flow_(*dog_a, flow_img, 5, 8, 7);
+    draw_flow_(*dog_a, flow_img, 8, 8, 7);
 
 
     show_image_cv(sdog_a, "s1", 0, 0);
