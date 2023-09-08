@@ -80,14 +80,14 @@ void fill_rectangle_tlbr_rgb_(image *img, point2di *tl, point2di *br,
 void draw_y_thinkness_(image *img, int y, int x, int thickness, color *c) {
     int half = thickness / 2;
     for (int i = 0; i < thickness; i++) {
-        set_color(img, CLAMP(y + i - half, 0, img->height), x, c);
+        set_color_safe(img, y + i - half, x, c);
     }
 }
 
 void draw_x_thinkness_(image *img, int y, int x, int thickness, color *c) {
     int half = thickness / 2;
     for (int i = 0; i < thickness; i++) {
-        set_color(img, y, CLAMP(x + i - half, 0, img->width), c);
+        set_color_safe(img, y, x + i - half, c);
     }
 }
 typedef void (*draw_color_fn)(image *img, int y, int x, int thickness,
@@ -137,6 +137,16 @@ void draw_line_yxyx_high_(image *img, int start_y, int start_x, int end_y,
         }
         draw_x_thinkness_(img, y, x, thickness, c);
     }
+}
+
+void draw_line_yxyx_safe_(image *img, int start_y, int start_x, int end_y,
+                          int end_x, color *c, int thickness) {
+    start_y = CLAMP(start_y, 0, img->width - 1);
+    end_y = CLAMP(end_y, 0, img->width - 1);
+
+    start_x = CLAMP(start_x, 0, img->width - 1);
+    end_x = CLAMP(end_x, 0, img->width - 1);
+    draw_line_yxyx_(img, start_y, start_x, end_y, end_x, c, thickness);
 }
 void draw_line_yxyx_(image *img, int start_y, int start_x, int end_y, int end_x,
                      color *c, int thickness) {

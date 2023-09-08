@@ -290,6 +290,10 @@ image *image_convert_1x3(const image *img) {
     return dest;
 }
 
+rgb to_rgb(float r, float g, float b) {
+    rgb rg = {.r = r, .g = g, .b = b};
+    return rg;
+}
 color *make_red_unit() { return make_rgb_color(1.0f, 0.0f, 0.0f); }
 color *make_blue_unit() { return make_rgb_color(0.0f, 0.0f, 1.0f); }
 color *make_green_unit() { return make_rgb_color(0.0f, 1.0f, 0.0f); }

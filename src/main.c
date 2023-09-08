@@ -8,6 +8,7 @@
 #include "keypoints/harris.h"
 #include "keypoints/keypoint.h"
 #include "list.h"
+#include "optical_flow/lk.h"
 #include "panorama.h"
 #include "stdx.h"
 #include <stdio.h>
@@ -112,32 +113,21 @@ int main() {
     color *red = make_red_unit();
     color *green = make_green_unit();
 
-    image *reiner1 = load_image("resources/field1.jpeg");
-    image *reiner2 = load_image("resources/field2.jpeg");
+    image *dog_a = load_image("resources/dog_a.jpeg");
+    image *dog_b = load_image("resources/dog_b.jpeg");
+    image *sdog_a = load_image("resources/dog_a_small.jpeg");
+    image *sdog_b = load_image("resources/dog_b_small.jpeg");
+    image *dog_a_gray = image_to_gray(dog_a);
+    image *dog_b_gray = image_to_gray(dog_b);
+    kernel *krn = kernel_make_full(15, 15, 1);
+    image flow_img = extract_lk_flow(*dog_a_gray, *dog_b_gray, *krn, 8);
+    draw_flow_(*dog_a, flow_img, 5, 8, 7);
 
-    list *kps = foo(reiner1);
-    list *kps2 = foo(reiner2);
-    list *matches = match_keypoints(kps, kps2, l1_d);
-    // render_keyppoints_(reiner1, kps, red, 5);
-    // render_keyppoints_(reiner2, kps2, red, 5);
-    printf("%d\n", matches->length);
-    image *b2b_img =
-        render_matches(reiner1, reiner2, matches, red, 5, green, 1);
 
-    list *filename_list = list_make();
-    list_insert(filename_list, "resources/Rainier2.png");
-    list_insert(filename_list, "resources/Rainier1.png");
-    list_insert(filename_list, "resources/Rainier3.png");
-    // list_insert(filename_list, "resources/Rainier4.png");
-    // list_insert(filename_list, "resources/Rainier1.png");
-    list *images_list = load_images(filename_list);
-    list *keypoints_list = extract_keypoint_images(images_list);
-    image *all_combined =
-        combine_pano(images_list, keypoints_list, l1_d, 20, 50, 100, 10);
-
-    show_image_cv(reiner1, "reiner1", 0, 1);
-    show_image_cv(reiner2, "reiner2", 0, 1);
-    show_image_cv(b2b_img, "b2b_img", 0, 0);
-    show_image_cv(all_combined, "all_combined", 0, 0);
-    free_image(reiner1);
+    show_image_cv(sdog_a, "s1", 0, 0);
+    show_image_cv(sdog_b, "s2", 0, 0);
+    show_image_cv(dog_a, "reiner1", 0, 0);
+    // show_image_cv(dog_b, "reiner2", 0, 0);
+    free_image(dog_a);
+    free_image(dog_b);
 }
