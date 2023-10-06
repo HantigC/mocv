@@ -4,6 +4,7 @@
 
 extern "C" {
 #include "image.h"
+#include "list.h"
 
 image *mat_to_image(cv::Mat m) {
     image *im = make_image(m.rows, m.cols, 3);
@@ -55,8 +56,35 @@ cv::Mat image_to_mat_noscale(image *im) {
     }
     return m;
 }
+
+list *load_image_sequence(const char *filename) {
+    list *image_list = list_make();
+
+    cv::VideoCapture cap(filename);
+
+    // Check if video opened successfully
+    if (!cap.isOpened()) {
+        std::cerr << "Error: Could not read video file" << std::endl;
+        exit(-1);
     }
-    return im;
+
+    image *img;
+
+    while (true) {
+        cv::Mat frame;
+
+        // Capture the next frame
+        cap >> frame;
+
+        // Break the loop if the video is over
+        if (frame.empty())
+            break;
+
+        img = mat_to_image(frame);
+        list_insert(image_list, img);
+    }
+    cap.release();
+    return image_list;
 }
 
 image *load_image_cv(const char *filename, int channels) {
@@ -96,6 +124,23 @@ int show_image_cv(image *im, const char *name, int no_scale, int ms) {
     if (c != -1)
         c = c % 256;
     return c;
+}
+
+int show_image_sequence_cv(list *image_sequence, const char *window_name,
+                           int fps, int scale) {
+
+    cv::namedWindow(window_name, cv::WINDOW_NORMAL);
+    node *iter = image_sequence->first;
+    image *img;
+    int wwait_time = (int)1000.0 / fps;
+    while (iter) {
+        img = (image *)iter->item;
+        show_image_cv(img, window_name, scale, wwait_time);
+        iter = iter->next;
+    }
+
+    cv::destroyWindow(window_name);
+    return 0;
 }
 
 int load_show_image_cv(const char *imagename, int channels, const char *name,
