@@ -4,6 +4,24 @@
 
 extern "C" {
 #include "image.h"
+
+image *mat_to_image(cv::Mat m) {
+    image *im = make_image(m.rows, m.cols, 3);
+    int i, j;
+    for (j = 0; j < im->height; ++j) {
+        for (i = 0; i < im->width; ++i) {
+            cv::Vec3b intensity = m.at<cv::Vec3b>(j, i);
+            float blue = intensity.val[0] / 255.;
+            float green = intensity.val[1] / 255.;
+            float red = intensity.val[2] / 255.;
+            set_pixel(im, j, i, 0, red);
+            set_pixel(im, j, i, 1, green);
+            set_pixel(im, j, i, 2, blue);
+        }
+    }
+    return im;
+}
+
 cv::Vec3b get_rgb_or_gray(image *img, int y, int x, float scalar) {
     if (img->channels == 3 || img->channels == 4) {
         return cv::Vec3b((unsigned char)(get_pixel(img, y, x, 2) * scalar),
@@ -37,19 +55,6 @@ cv::Mat image_to_mat_noscale(image *im) {
     }
     return m;
 }
-image *mat_to_image(cv::Mat m) {
-    image *im = make_image(m.cols, m.rows, 3);
-    int i, j;
-    for (j = 0; j < im->height; ++j) {
-        for (i = 0; i < im->width; ++i) {
-            cv::Vec3b intensity = m.at<cv::Vec3b>(j, i);
-            float blue = intensity.val[0] / 255.;
-            float green = intensity.val[1] / 255.;
-            float red = intensity.val[2] / 255.;
-            set_pixel(im, j, i, 0, red);
-            set_pixel(im, j, i, 1, green);
-            set_pixel(im, j, i, 2, blue);
-        }
     }
     return im;
 }
