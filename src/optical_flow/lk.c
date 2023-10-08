@@ -6,15 +6,15 @@
 #include "matrix.h"
 #include <stdio.h>
 
-image *compute_image_dt(image image_t0, image image_t1) {
-    image *image_dt = make_image(image_t0.height, image_t0.width, 1);
+image compute_image_dt(image image_t0, image image_t1) {
+    image image_dt = make_image(image_t0.height, image_t0.width, 1);
     float pixel_dt;
     float p0, p1;
 
     for (int y = 0; y < image_t0.height; y++) {
         for (int x = 0; x < image_t0.width; x++) {
-            p1 = get_pixel(&image_t1, y, x, 0);
-            p0 = get_pixel(&image_t0, y, x, 0);
+            p1 = get_pixel(image_t1, y, x, 0);
+            p0 = get_pixel(image_t0, y, x, 0);
             pixel_dt = p1 - p0;
             set_pixel(image_dt, y, x, 0, pixel_dt);
         }
@@ -32,11 +32,11 @@ point2df compute_flow_direction(image image_dx, image image_dy, image image_dt,
     double dx, dy, dt;
     for (int i = 0; i < krn.height; i++) {
         for (int j = 0; j < krn.width; j++) {
-            dx = (double)get_pixel_safe(&image_dx, y - half_h + i,
+            dx = (double)get_pixel_safe(image_dx, y - half_h + i,
                                         x - half_w + j, 0);
-            dy = (double)get_pixel_safe(&image_dy, y - half_h + i,
+            dy = (double)get_pixel_safe(image_dy, y - half_h + i,
                                         x - half_w + j, 0);
-            dt = (double)get_pixel_safe(&image_dt, y - half_h + i,
+            dt = (double)get_pixel_safe(image_dt, y - half_h + i,
                                         x - half_w + j, 0);
             A.data[0][0] += dx * dx;
             A.data[0][1] += dx * dy;
@@ -69,20 +69,20 @@ static image compute_flow(image image_t0, image image_t1, kernel weight,
     assert(image_t1.channels == 1);
     int h = (image_t0.height - weight.height) / stride + 1;
     int w = (image_t0.width - weight.width) / stride + 1;
-    image *flow_image = make_image(h, w, 2);
-    kernel *sobel_x = kernel_make_sobelx();
-    kernel *sobel_y = kernel_make_sobely();
+    image flow_image = make_image(h, w, 2);
+    kernel sobel_x = kernel_make_sobelx();
+    kernel sobel_y = kernel_make_sobely();
 
-    image *dx_image = kernel_convolve(&image_t0, sobel_x, MIRROR, 0.0f);
-    image *dy_image = kernel_convolve(&image_t0, sobel_y, MIRROR, 0.0f);
-    image *dt_image = compute_image_dt(image_t0, image_t1);
+    image dx_image = kernel_convolve(image_t0, sobel_x, MIRROR, 0.0f);
+    image dy_image = kernel_convolve(image_t0, sobel_y, MIRROR, 0.0f);
+    image dt_image = compute_image_dt(image_t0, image_t1);
     point2df flow_direction;
     int half_w = weight.width / 2;
     int half_h = weight.height / 2;
     for (int y = half_h; y < image_t0.height - half_h; y += stride) {
         for (int x = half_w; x < image_t0.width - half_w; x += stride) {
-            flow_direction = compute_flow_direction(*dx_image, *dy_image,
-                                                    *dt_image, y, x, weight);
+            flow_direction = compute_flow_direction(dx_image, dy_image,
+                                                    dt_image, y, x, weight);
             set_pixel(flow_image, (y - half_h) / stride, (x - half_w) / stride,
                       0, flow_direction.x);
             set_pixel(flow_image, (y - half_h) / stride, (x - half_w) / stride,
@@ -94,14 +94,14 @@ static image compute_flow(image image_t0, image image_t1, kernel weight,
     free_image(dt_image);
     free_kernel(sobel_x);
     free_kernel(sobel_y);
-    return *flow_image;
+    return flow_image;
 }
 
 image extract_lk_flow(image image_t0, image image_t1, kernel weight,
                       int stride) {
     image flow = compute_flow(image_t0, image_t1, weight, stride);
-    kernel *gaus = kernel_make_gaus(3, 3, 2);
-    kernel_convolve(&flow, gaus, MIRROR, 0.0f);
+    kernel gaus = kernel_make_gaus(3, 3, 2);
+    kernel_convolve(flow, gaus, MIRROR, 0.0f);
     free_kernel(gaus);
     return flow;
 }
@@ -159,13 +159,13 @@ void draw_flow_(image img, image flow_img, int scale, int stride, int offset) {
             flow_y = y / flow_h;
             flow_x = x / flow_w;
 
-            dx = get_pixel(&flow_img, flow_y, flow_x, 0);
-            dy = get_pixel(&flow_img, flow_y, flow_x, 1);
+            dx = get_pixel(flow_img, flow_y, flow_x, 0);
+            dy = get_pixel(flow_img, flow_y, flow_x, 1);
             r = rgb_from_flow(dy, dx);
 
             // draw_x_yx_(&img, y, x, copy_rgb_color(&r), 3);
-            draw_line_yxyx_safe_(&img, y, x, y + scale * dy, x + scale * dx,
-                                 copy_rgb_color(&r), 1);
+            draw_line_yxyx_safe_(img, y, x, y + scale * dy, x + scale * dx,
+                                 rgb_to_color(r), 1);
         }
     }
 }

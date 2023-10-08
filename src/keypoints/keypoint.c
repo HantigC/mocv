@@ -3,16 +3,16 @@
 #include "stdx.h"
 
 keypoint *make_empty_keypoint() { return (keypoint *)malloc(sizeof(keypoint)); }
-keypoint *make_keypoint(point2di *p, float confidence) {
+keypoint *alloc_keypoint(point2di *p, float confidence) {
     keypoint *keypoint = make_empty_keypoint();
     keypoint->xy = p;
     keypoint->confidence = confidence;
     return keypoint;
 }
 
-image *render_keypoint_pixels(list *keypoints, image *img) {
+image render_keypoint_pixels(list *keypoints, image img) {
     node *node = keypoints->first;
-    image *kp_image = make_image(img->height, img->width, 1);
+    image kp_image = make_image(img.height, img.width, 1);
     keypoint *kp;
     while (node) {
         kp = (keypoint *)node->item;
@@ -23,14 +23,14 @@ image *render_keypoint_pixels(list *keypoints, image *img) {
     return kp_image;
 }
 
-float apply_neighbourhood(image *img, int y, int x, int hood_size) {
+float apply_neighbourhood(image img, int y, int x, int hood_size) {
     int half = hood_size / 2;
     int start_x, start_y, end_y, end_x;
     start_y = MAX(y - half, 0);
     start_x = MAX(x - half, 0);
 
-    end_y = MIN(y + half, img->height);
-    end_x = MIN(x + half, img->width);
+    end_y = MIN(y + half, img.height);
+    end_x = MIN(x + half, img.width);
 
     float pixel = get_pixel(img, y, x, 0);
     for (int i = start_y; i < end_y; i++) {
@@ -45,15 +45,15 @@ float apply_neighbourhood(image *img, int y, int x, int hood_size) {
     return pixel;
 }
 
-void apply_neighbourhood_(image *img, int y, int x, int hood_size) {
+void apply_neighbourhood_(image img, int y, int x, int hood_size) {
     set_pixel(img, y, x, 0, apply_neighbourhood(img, y, x, hood_size));
 }
 
-image *kp_nms(image *kp_img, int nms_hood) {
-    image *dest = make_image_like(kp_img);
+image kp_nms(image kp_img, int nms_hood) {
+    image dest = make_image_like(kp_img);
     float dest_pixel;
-    for (int y = 0; y < kp_img->height; y++) {
-        for (int x = 0; x < kp_img->width; x++) {
+    for (int y = 0; y < kp_img.height; y++) {
+        for (int x = 0; x < kp_img.width; x++) {
             dest_pixel = apply_neighbourhood(kp_img, y, x, nms_hood);
             set_pixel(dest, y, x, 0, dest_pixel);
         }
@@ -61,28 +61,28 @@ image *kp_nms(image *kp_img, int nms_hood) {
     return dest;
 }
 
-void kp_nms_(image *kp_img, int nms_hood) {
-    for (int y = 0; y < kp_img->height; y++) {
-        for (int x = 0; x < kp_img->width; x++) {
+void kp_nms_(image kp_img, int nms_hood) {
+    for (int y = 0; y < kp_img.height; y++) {
+        for (int x = 0; x < kp_img.width; x++) {
             apply_neighbourhood_(kp_img, y, x, nms_hood);
         }
     }
 }
 
-simple_descriptor *extract_window(const image *img, int y, int x,
+simple_descriptor *extract_window(const image img, int y, int x,
                                   int window_size) {
     simple_descriptor *descriptor =
         (simple_descriptor *)malloc(sizeof(simple_descriptor));
-    descriptor->length = window_size * window_size * img->channels;
+    descriptor->length = window_size * window_size * img.channels;
     descriptor->data = (float *)calloc(descriptor->length, sizeof(float));
     int count = 0;
     int half = window_size / 2;
     int cy, cx;
     for (int i = 0; i < window_size; i++) {
         for (int j = 0; j < window_size; j++) {
-            cy = CLAMP(y - half + i, 0, img->height);
-            cx = CLAMP(x - half + j, 0, img->width);
-            for (int c = 0; c < img->channels; c++) {
+            cy = CLAMP(y - half + i, 0, img.height);
+            cx = CLAMP(x - half + j, 0, img.width);
+            for (int c = 0; c < img.channels; c++) {
                 descriptor->data[count] = get_pixel_safe(img, cy, cx, c);
                 ++count;
             }
@@ -91,7 +91,7 @@ simple_descriptor *extract_window(const image *img, int y, int x,
     return descriptor;
 }
 
-void extract_patch_descriptors_(const image *img, list *keypoints,
+void extract_patch_descriptors_(const image img, list *keypoints,
                                 int window_size) {
     node *node;
     keypoint *kp;
@@ -101,14 +101,14 @@ void extract_patch_descriptors_(const image *img, list *keypoints,
     }
 }
 
-match *make_empty_match() {
+match *alloc_empty_match() {
     match *m = (match *)malloc(sizeof(match));
     return m;
 }
 
-match *make_match(void *st_kp, void *nd_kp, float distace, int st_index,
+match *alloc_match(void *st_kp, void *nd_kp, float distace, int st_index,
                   int nd_index) {
-    match *m = make_empty_match();
+    match *m = alloc_empty_match();
     m->st_kp = st_kp;
     m->nd_kp = nd_kp;
     m->distance = distace;
@@ -145,7 +145,7 @@ list *match_keypoints(list *st_keypoints, list *nd_keypoints, distance_fn fn) {
                 min_index = nd_cnt;
             }
         }
-        list_insert(matches_list, make_match(st_kps[st_cnt], nd_kps[min_index],
+        list_insert(matches_list, alloc_match(st_kps[st_cnt], nd_kps[min_index],
                                              min_distance, st_cnt, min_index));
     }
     free(st_kps);
@@ -170,12 +170,12 @@ list *match_keypoints(list *st_keypoints, list *nd_keypoints, distance_fn fn) {
     return injective_matches;
 }
 
-void render_keyppoints_(image *img, list *keypoints, color *c, int length) {
+void render_keyppoints_(image img, list *keypoints, color c, int length) {
     node *node = keypoints->first;
     keypoint *kp;
     while (node) {
         kp = (keypoint *)node->item;
-        draw_x_pointi_(img, kp->xy, c, length);
+        draw_x_pointi_(img, *kp->xy, c, length);
         node = node->next;
     }
 }

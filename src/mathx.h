@@ -37,8 +37,6 @@ typedef struct minmax {
 int min_int(int cnt, ...);
 int max_int(int cnt, ...);
 
-
-
 float gaussian(float x, float mu, float sigma);
 float *normalize(float *xs, int length, float normalizer, int inplace);
 point2di *make_empty_point2di();

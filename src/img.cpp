@@ -7,7 +7,7 @@ extern "C" {
 #include "list.h"
 
 image *mat_to_image(cv::Mat m) {
-    image *im = make_image(m.rows, m.cols, 3);
+    image *im = make_alloc_image(m.rows, m.cols, 3);
     int i, j;
     for (j = 0; j < im->height; ++j) {
         for (i = 0; i < im->width; ++i) {
@@ -15,9 +15,9 @@ image *mat_to_image(cv::Mat m) {
             float blue = intensity.val[0] / 255.;
             float green = intensity.val[1] / 255.;
             float red = intensity.val[2] / 255.;
-            set_pixel(im, j, i, 0, red);
-            set_pixel(im, j, i, 1, green);
-            set_pixel(im, j, i, 2, blue);
+            set_pixel(*im, j, i, 0, red);
+            set_pixel(*im, j, i, 1, green);
+            set_pixel(*im, j, i, 2, blue);
         }
     }
     return im;
@@ -25,13 +25,13 @@ image *mat_to_image(cv::Mat m) {
 
 cv::Vec3b get_rgb_or_gray(image *img, int y, int x, float scalar) {
     if (img->channels == 3 || img->channels == 4) {
-        return cv::Vec3b((unsigned char)(get_pixel(img, y, x, 2) * scalar),
-                         (unsigned char)(get_pixel(img, y, x, 1) * scalar),
-                         (unsigned char)(get_pixel(img, y, x, 0) * scalar));
+        return cv::Vec3b((unsigned char)(get_pixel(*img, y, x, 2) * scalar),
+                         (unsigned char)(get_pixel(*img, y, x, 1) * scalar),
+                         (unsigned char)(get_pixel(*img, y, x, 0) * scalar));
     } else {
-        return cv::Vec3b((unsigned char)(get_pixel(img, y, x, 0) * scalar),
-                         (unsigned char)(get_pixel(img, y, x, 0) * scalar),
-                         (unsigned char)(get_pixel(img, y, x, 0) * scalar));
+        return cv::Vec3b((unsigned char)(get_pixel(*img, y, x, 0) * scalar),
+                         (unsigned char)(get_pixel(*img, y, x, 0) * scalar),
+                         (unsigned char)(get_pixel(*img, y, x, 0) * scalar));
     }
 }
 
@@ -105,8 +105,7 @@ image *load_image_cv(const char *filename, int channels) {
         char buff[256];
         sprintf(buff, "echo %s >> bad.list", filename);
         system(buff);
-        return make_image(10, 10, 3);
-        // exit(0);
+        exit(0);
     }
     image *im = mat_to_image(m);
     if (channels)

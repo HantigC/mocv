@@ -16,8 +16,10 @@
 
 boolean is_over(color *gray) { return gray->data[0] > 25.0f; }
 
-void draw_an_x(image *img, int y, int x) {
-    draw_x_yx_(img, y, x, make_rgb_color(1.0f, 0.0f, 0.0f), 6);
+void draw_an_x(image img, int y, int x) {
+    color red = make_rgb_color(1.0f, 0.0f, 0.0f);
+    draw_x_yx_(img, y, x, red, 6);
+    free_color(red);
 }
 
 int filter_harris_keypoints(void *void_keypoint) {
@@ -27,15 +29,14 @@ int filter_harris_keypoints(void *void_keypoint) {
 
 void display_kp(void *v_kp) {
     keypoint *kp = (keypoint *)v_kp;
-    printf("keypoint(x=%d, y=%d, confidence=%f)", kp->xy->x, kp->xy->y,
-           kp->confidence);
+    printf("keypoint(x=%d, y=%d, confidence=%f)", kp->xy->x, kp->xy->y, kp->confidence);
 }
-list *foo(image *img) {
-    image *gray = image_to_gray(img);
+list *foo(image img) {
+    image gray = image_to_gray(img);
 
-    kernel *gaus = kernel_make_gaus(3, 3, 5.0f);
-    image *smoothed_img = kernel_convolve(gray, gaus, MIRROR, 255.0f);
-    kernel *harris_kernel = kernel_make_gaus(3, 3, 2.0f);
+    kernel gaus = kernel_make_gaus(3, 3, 5.0f);
+    image smoothed_img = kernel_convolve(gray, gaus, MIRROR, 255.0f);
+    kernel harris_kernel = kernel_make_gaus(3, 3, 2.0f);
     kernel_mul_scalar_(harris_kernel, 9.0f);
     list *harris_kps_list =
         detect_harris_keypoints(smoothed_img, harris_kernel, 0.06, 7, 20.0f);
@@ -91,8 +92,10 @@ enum CMP int_cmp(void *x, void *y) {
 list *extract_keypoint_images(list *images_list) {
     list *keypoints_list = list_make();
     node *n = images_list->first;
+    image *img;
     while (n) {
-        list_insert(keypoints_list, foo(n->item));
+        img  = n->item;
+        list_insert(keypoints_list, foo(*img));
         n = n->next;
     }
     return keypoints_list;
@@ -102,33 +105,13 @@ list *load_images(list *filenames_list) {
     list *images_list = list_make();
     node *n = filenames_list->first;
     while (n) {
-        list_insert(images_list, load_image((char *)n->item));
+        list_insert(images_list, load_alloc_image((char *)n->item));
         n = n->next;
     }
     return images_list;
 }
-
 int main() {
-
-    color *red = make_red_unit();
-    color *green = make_green_unit();
-
-    image *dog_a = load_image("resources/dog_a.jpeg");
-    image *dog_b = load_image("resources/dog_b.jpeg");
-    image *sdog_a = load_image("resources/dog_a_small.jpeg");
-    image *sdog_b = load_image("resources/dog_b_small.jpeg");
-    image *dog_a_gray = image_to_gray(dog_a);
-    image *dog_b_gray = image_to_gray(dog_b);
-    kernel *krn = kernel_make_gaus(15, 15, 2);
-    kernel_mul_scalar_(krn, 15 * 15);
-    image flow_img = extract_lk_flow(*dog_a_gray, *dog_b_gray, *krn, 8);
-    draw_flow_(*dog_a, flow_img, 8, 8, 7);
-
-
-    show_image_cv(sdog_a, "s1", 0, 0);
-    show_image_cv(sdog_b, "s2", 0, 0);
-    show_image_cv(dog_a, "reiner1", 0, 0);
-    // show_image_cv(dog_b, "reiner2", 0, 0);
-    free_image(dog_a);
-    free_image(dog_b);
+    list *image_sequence = load_image_sequence("./resources/person_walking.mp4");
+    show_image_sequence_cv(image_sequence, "highway", 24, 0);
+    return 0;
 }

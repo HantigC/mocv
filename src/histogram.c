@@ -45,9 +45,7 @@ void init_hist(histogram *hist, int bins, float min_value, float max_value) {
     hist->total = 0;
 }
 
-bucket *copy_bucket(bucket *src) {
-    return make_bucket(src->start, src->end, src->count);
-}
+bucket *copy_bucket(bucket *src) { return make_bucket(src->start, src->end, src->count); }
 
 void add_to_hist(histogram *hist, float x) {
     int bin = (x - hist->min_value) / hist->step;
@@ -83,7 +81,7 @@ image *render_histogram(histogram *hist, int height, int width, color *color) {
     return render_histogram_(img, hist, color);
 }
 
-float histogram_max_count(histogram *hist){
+float histogram_max_count(histogram *hist) {
     float max_count = hist->buckets[0].count;
     for (int bin = 1; bin < hist->bins; bin++) {
         max_count = MAX(max_count, hist->buckets[bin].count);
@@ -93,7 +91,7 @@ float histogram_max_count(histogram *hist){
 
 image *render_histogram_(image *img, histogram *hist, color *color) {
     float offset = 10.0f;
-    float bin_width =(float)(img->width - 2.0f * offset) / hist->bins;
+    float bin_width = (float)(img->width - 2.0f * offset) / hist->bins;
     int bin_height;
     float max_count = histogram_max_count(hist);
     point2di *tl = (point2di *)malloc(sizeof(point2di));
@@ -113,13 +111,11 @@ image *render_histogram_(image *img, histogram *hist, color *color) {
 }
 
 void print_bucket(bucket *buck) {
-    printf("Bucket(start=%f, end=%f, count=%f)", buck->start, buck->end,
-           buck->count);
+    printf("Bucket(start=%f, end=%f, count=%f)", buck->start, buck->end, buck->count);
 }
 void print_hist(histogram *hist) {
-    printf("Histogram(bins=%d, step=%f, min_value=%f, max_value=%f, total=%f",
-           hist->bins, hist->step, hist->min_value, hist->max_value,
-           hist->total);
+    printf("Histogram(bins=%d, step=%f, min_value=%f, max_value=%f, total=%f", hist->bins,
+           hist->step, hist->min_value, hist->max_value, hist->total);
     for (int bin = 0; bin < hist->bins; bin++) {
         printf("bin[%d]:", bin);
         print_bucket(&hist->buckets[bin]);

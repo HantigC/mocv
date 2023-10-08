@@ -4,32 +4,30 @@
 #include "rect.h"
 #include <assert.h>
 
-image *combine_images_on_x(image *img_st, image *img_nd) {
-    int height = MAX(img_st->height, img_nd->height);
-    image *img =
-        make_image(height, img_st->width + img_nd->width, img_st->channels);
-    for (int c = 0; c < img_st->channels; c++) {
-        for (int y = 0; y < img_st->height; y++) {
-            for (int x = 0; x < img_st->width; x++) {
+image combine_images_on_x(image img_st, image img_nd) {
+    int height = MAX(img_st.height, img_nd.height);
+    image img = make_image(height, img_st.width + img_nd.width, img_st.channels);
+    for (int c = 0; c < img_st.channels; c++) {
+        for (int y = 0; y < img_st.height; y++) {
+            for (int x = 0; x < img_st.width; x++) {
                 set_pixel(img, y, x, c, get_pixel(img_st, y, x, c));
             }
         }
     }
 
-    for (int c = 0; c < img_nd->channels; c++) {
-        for (int y = 0; y < img_nd->height; y++) {
-            for (int x = 0; x < img_nd->width; x++) {
-                set_pixel(img, y, img_st->width + x, c,
-                          get_pixel(img_nd, y, x, c));
+    for (int c = 0; c < img_nd.channels; c++) {
+        for (int y = 0; y < img_nd.height; y++) {
+            for (int x = 0; x < img_nd.width; x++) {
+                set_pixel(img, y, img_st.width + x, c, get_pixel(img_nd, y, x, c));
             }
         }
     }
     return img;
 }
 
-image *render_matches(image *st_img, image *nd_img, list *matches, color *c,
-                      int length, color *line_color, int thikness) {
-    image *img = combine_images_on_x(st_img, nd_img);
+image render_matches(image st_img, image nd_img, list *matches, color c, int length,
+                      color line_color, int thikness) {
+    image img = combine_images_on_x(st_img, nd_img);
     keypoint *st_kp, *nd_kp;
     match *kp_match;
     node *node = matches->first;
@@ -37,10 +35,10 @@ image *render_matches(image *st_img, image *nd_img, list *matches, color *c,
         kp_match = (match *)node->item;
         st_kp = kp_match->st_kp;
         nd_kp = kp_match->nd_kp;
-        draw_x_pointi_(img, st_kp->xy, c, length);
-        draw_x_yx_(img, nd_kp->xy->y, nd_kp->xy->x + st_img->width, c, length);
+        draw_x_pointi_(img, *st_kp->xy, c, length);
+        draw_x_yx_(img, nd_kp->xy->y, nd_kp->xy->x + st_img.width, c, length);
         draw_line_yxyx_(img, st_kp->xy->y, st_kp->xy->x, nd_kp->xy->y,
-                        nd_kp->xy->x + nd_img->width, line_color, thikness);
+                        nd_kp->xy->x + nd_img.width, line_color, thikness);
         node = node->next;
     }
     return img;
@@ -143,8 +141,7 @@ int count_inliers(matrix H, match **matches, int nm, float threshold) {
     return total;
 }
 
-matrix RANSAC(match **matches, int nm, float thresh, int k, int cutoff,
-              int no_points) {
+matrix RANSAC(match **matches, int nm, float thresh, int k, int cutoff, int no_points) {
     matrix none = {0};
     if (no_points > nm) {
         return none;
@@ -176,44 +173,43 @@ rect _extract_bounds(image img1, image img2, matrix H) {
     point2di pinv00 = project_point(Hinv, *make_point2di(0, 0));
     point2di pinv0w = project_point(Hinv, *make_point2di(img2.width, 0));
     point2di pinvh0 = project_point(Hinv, *make_point2di(0, img2.height));
-    point2di pinvhw =
-        project_point(Hinv, *make_point2di(img2.width, img2.height));
+    point2di pinvhw = project_point(Hinv, *make_point2di(img2.width, img2.height));
 
     point2di pv00 = *make_point2di(0, 0);
     point2di pv0w = *make_point2di(img1.width, 0);
     point2di pvh0 = *make_point2di(0, img1.height);
     point2di pvhw = *make_point2di(img1.width, img1.height);
-    int min_x = min_int(8, pinv00.x, pinvhw.x, pinvh0.x, pinv0w.x, pv00.x,
-                        pvhw.x, pvh0.x, pv0w.x);
-    int min_y = min_int(8, pinv00.y, pinvhw.y, pinvh0.y, pinv0w.y, pv00.y,
-                        pvhw.y, pvh0.y, pv0w.y);
+    int min_x = min_int(8, pinv00.x, pinvhw.x, pinvh0.x, pinv0w.x, pv00.x, pvhw.x, pvh0.x,
+                        pv0w.x);
+    int min_y = min_int(8, pinv00.y, pinvhw.y, pinvh0.y, pinv0w.y, pv00.y, pvhw.y, pvh0.y,
+                        pv0w.y);
 
-    int max_x = max_int(8, pinv00.x, pinvhw.x, pinvh0.x, pinv0w.x, pv00.x,
-                        pvhw.x, pvh0.x, pv0w.x);
-    int max_y = max_int(8, pinv00.y, pinvhw.y, pinvh0.y, pinv0w.y, pv00.y,
-                        pvhw.y, pvh0.y, pv0w.y);
+    int max_x = max_int(8, pinv00.x, pinvhw.x, pinvh0.x, pinv0w.x, pv00.x, pvhw.x, pvh0.x,
+                        pv0w.x);
+    int max_y = max_int(8, pinv00.y, pinvhw.y, pinvh0.y, pinv0w.y, pv00.y, pvhw.y, pvh0.y,
+                        pv0w.y);
     int height = max_y - min_y;
     int width = max_x - min_x;
     return rect_from_yxhw(min_y, min_x, height, width);
 }
 
-image *combine_on_homography(matrix H, image *st_image, image *nd_image) {
-    rect bbox = _extract_bounds(*st_image, *nd_image, H);
-    image *combination = make_image(bbox.h, bbox.w, st_image->channels);
-    color *c = make_red_unit();
-    for (int y = 0; y < st_image->height; y++) {
-        for (int x = 0; x < st_image->width; x++) {
+image combine_on_homography(matrix H, image st_image, image nd_image) {
+    rect bbox = _extract_bounds(st_image, nd_image, H);
+    image combination = make_image(bbox.h, bbox.w, st_image.channels);
+    color c = make_color(st_image.channels);
+    for (int y = 0; y < st_image.height; y++) {
+        for (int x = 0; x < st_image.width; x++) {
             get_color_(st_image, y, x, c);
             set_color(combination, y - bbox.y, x - bbox.x, c);
         }
     }
 
     point2di pp;
-    for (int y = 0; y < combination->height; y++) {
-        for (int x = 0; x < combination->width; x++) {
+    for (int y = 0; y < combination.height; y++) {
+        for (int x = 0; x < combination.width; x++) {
             pp = project_point(H, *make_point2di(x + bbox.x, y + bbox.y));
-            if (pp.x >= 0 && pp.x < nd_image->width && pp.y >= 0 &&
-                pp.y < nd_image->height) {
+            if (pp.x >= 0 && pp.x < nd_image.width && pp.y >= 0 &&
+                pp.y < nd_image.height) {
                 get_color_(nd_image, pp.y, pp.x, c);
                 set_color(combination, y, x, c);
             }
@@ -258,8 +254,7 @@ void project_and_shift_(list kp_list, matrix H, point2di tl) {
         n = n->next;
     }
 }
-list *extract_kps_from_matches(list kp_list1, list kp_list2, matrix H,
-                               point2di t) {
+list *extract_kps_from_matches(list kp_list1, list kp_list2, matrix H, point2di t) {
     node *n = kp_list2.first;
     list *kp_list = copy_list(&kp_list1);
     shift_(*kp_list, t);
@@ -277,12 +272,12 @@ list *extract_kps_from_matches(list kp_list1, list kp_list2, matrix H,
     return kp_list;
 }
 
-image *combine_pano(list *image_list, list *keypoints_list, distance_fn fn,
-                    int aligment_thresh, int iterations, int cutoff, int no_points)  {
+image combine_pano(list *image_list, list *keypoints_list, distance_fn fn,
+                    int aligment_thresh, int iterations, int cutoff, int no_points) {
     assert(image_list->length == keypoints_list->length);
     image **images = (image **)list_to_array(image_list);
     list **keypoints = (list **)list_to_array(keypoints_list);
-    image *combined = images[0];
+    image combined = *images[0];
     list *matches_list;
     match **matches;
     list *matched_kps = keypoints[0];
@@ -290,12 +285,12 @@ image *combine_pano(list *image_list, list *keypoints_list, distance_fn fn,
     for (int i = 1; i < image_list->length; i++) {
         matches_list = match_keypoints(matched_kps, keypoints[i], fn);
         matches = (match **)list_to_array(matches_list);
-        matrix H = RANSAC(matches, matches_list->length, aligment_thresh,
-                          iterations, cutoff, no_points);
-        bbox = _extract_bounds(*combined, *images[i], H);
-        combined = combine_on_homography(H, combined, images[i]);
-        matched_kps = extract_kps_from_matches(*matched_kps, *keypoints[i], H,
-                                               rect_get_tl(bbox));
+        matrix H = RANSAC(matches, matches_list->length, aligment_thresh, iterations,
+                          cutoff, no_points);
+        bbox = _extract_bounds(combined, *images[i], H);
+        combined = combine_on_homography(H, combined, *images[i]);
+        matched_kps =
+            extract_kps_from_matches(*matched_kps, *keypoints[i], H, rect_get_tl(bbox));
     }
     return combined;
 }
