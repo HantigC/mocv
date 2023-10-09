@@ -29,7 +29,8 @@ int filter_harris_keypoints(void *void_keypoint) {
 
 void display_kp(void *v_kp) {
     keypoint *kp = (keypoint *)v_kp;
-    printf("keypoint(x=%d, y=%d, confidence=%f)", kp->xy->x, kp->xy->y, kp->confidence);
+    printf("keypoint(x=%d, y=%d, confidence=%f)", kp->xy->x, kp->xy->y,
+           kp->confidence);
 }
 list *foo(image img) {
     image gray = image_to_gray(img);
@@ -94,7 +95,7 @@ list *extract_keypoint_images(list *images_list) {
     node *n = images_list->first;
     image *img;
     while (n) {
-        img  = n->item;
+        img = n->item;
         list_insert(keypoints_list, foo(*img));
         n = n->next;
     }
@@ -111,7 +112,19 @@ list *load_images(list *filenames_list) {
     return images_list;
 }
 int main() {
-    list *image_sequence = load_image_sequence("./resources/person_walking.mp4");
-    show_image_sequence_cv(image_sequence, "highway", 24, 0);
+    list *image_sequence =
+        cv_load_image_sequence("./resources/person_walking.mp4");
+    list *sliced_seq = slice_at(image_sequence, 40, 100);
+    image *first_image = item_at(image_sequence, 40);
+    rgb red = {.r = 1.0f, .g = 0.0f, .b = 0.0f};
+    color red_color = rgb_to_color(red);
+    point2di tl = {.y = 193, .x = 518};
+    point2di br = {.y = 344, .x = 601};
+    draw_rectangle_tlbr_rgb_(*first_image, tl, br, red);
+    print_image(*first_image);
+    show_image_cv(first_image, "window", 0, 0);
+
+    printf("\n");
+    show_image_sequence_cv(sliced_seq, "highway", 24, 0);
     return 0;
 }

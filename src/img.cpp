@@ -3,8 +3,19 @@
 #include <stdlib.h>
 
 extern "C" {
+#include "img.h"
 #include "image.h"
 #include "list.h"
+
+
+void print_click_mouse_callback(int event, int x, int y, int flags, void* userdata)
+{
+    // Check if the left button is pressed
+    if (event == cv::EVENT_LBUTTONDOWN)
+    {
+        printf("Left button of the mouse is clicked - position (y=%d, x=%d)\n", y, x);
+    }
+}
 
 image *mat_to_image(cv::Mat m) {
     image *im = make_alloc_image(m.rows, m.cols, 3);
@@ -57,7 +68,7 @@ cv::Mat image_to_mat_noscale(image *im) {
     return m;
 }
 
-list *load_image_sequence(const char *filename) {
+list *cv_load_image_sequence(const char *filename) {
     list *image_list = list_make();
 
     cv::VideoCapture cap(filename);
@@ -112,13 +123,17 @@ image *load_image_cv(const char *filename, int channels) {
         assert(im->channels == channels);
     return im;
 }
-int show_image_cv(image *im, const char *name, int no_scale, int ms) {
+
+
+int show_image_cv(image *im, const char *name, int ms, mouse_callback callback) {
     cv::Mat m;
-    if (no_scale)
-        m = image_to_mat_noscale(im);
-    else
-        m = image_to_mat(im);
+    m = image_to_mat(im);
     imshow(name, m);
+    if (callback){
+        cv::setMouseCallback(name, callback, 0);
+    }else{
+        cv::setMouseCallback(name, print_click_mouse_callback, 0);
+    }
     int c = cv::waitKey(ms);
     if (c != -1)
         c = c % 256;
@@ -126,7 +141,7 @@ int show_image_cv(image *im, const char *name, int no_scale, int ms) {
 }
 
 int show_image_sequence_cv(list *image_sequence, const char *window_name,
-                           int fps, int scale) {
+                           int fps, mouse_callback callback) {
 
     cv::namedWindow(window_name, cv::WINDOW_NORMAL);
     node *iter = image_sequence->first;
@@ -134,7 +149,7 @@ int show_image_sequence_cv(list *image_sequence, const char *window_name,
     int wwait_time = (int)1000.0 / fps;
     while (iter) {
         img = (image *)iter->item;
-        show_image_cv(img, window_name, scale, wwait_time);
+        show_image_cv(img, window_name, wwait_time, callback);
         iter = iter->next;
     }
 

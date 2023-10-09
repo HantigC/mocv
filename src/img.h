@@ -2,11 +2,14 @@
 #define IMG_H
 #include "image.h"
 #include "list.h"
-int show_image_cv(image *img, char *window_name, int no_scale, int wait_time);
+
+typedef void (*mouse_callback)(int event, int x, int y, int flags,
+                               void *user_data);
+int show_image_cv(image *im, const char *name, int ms, mouse_callback callback);
 int load_show_image_cv(const char *imagename, int channels, const char *name,
                        int ms);
 
 int show_image_sequence_cv(list *image_sequence, const char *window_name,
-                           int fps, int scale);
-list *load_image_sequence(const char *filename);
+                           int fps, mouse_callback callback);
+list *cv_load_image_sequence(const char *filename);
 #endif
