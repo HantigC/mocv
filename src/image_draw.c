@@ -64,7 +64,7 @@ void fill_rectangle_tlbr_(image img, point2di tl, point2di br, color color) {
 void draw_rectangle_tlbr_rgb_(image img, point2di tl, point2di br, rgb rgb_color) {
 
     int h = br.y - tl.y;
-    int w = br.y - tl.y;
+    int w = br.x - tl.x;
     draw_rectangle_yxhw_rgb_(img, tl.y, tl.x, h, w, rgb_color);
 }
 void fill_rectangle_tlbr_rgb_(image img, point2di tl, point2di br, rgb rgb_color) {
