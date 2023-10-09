@@ -5,6 +5,11 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
+void print_image(image img) {
+    printf("Image(width=%d, height=%d, channels=%d)", img.width, img.height,
+           img.channels);
+}
+
 image make_empty_image(int height, int width, int channels) {
     image img = {0};
     img.width = width;
@@ -40,12 +45,12 @@ void save_image_stb(image im, const char *name, int png) {
     int success = 0;
     if (png) {
         sprintf(buff, "%s.png", name);
-        success = stbi_write_png(buff, im.width, im.height, im.channels,
-                                 data, im.width * im.channels);
+        success = stbi_write_png(buff, im.width, im.height, im.channels, data,
+                                 im.width * im.channels);
     } else {
         sprintf(buff, "%s.jpg", name);
-        success = stbi_write_jpg(buff, im.width, im.height, im.channels,
-                                 data, 100);
+        success =
+            stbi_write_jpg(buff, im.width, im.height, im.channels, data, 100);
     }
     free(data);
     if (!success)
@@ -55,7 +60,7 @@ void save_image_stb(image im, const char *name, int png) {
 void save_png(image im, const char *name) { save_image_stb(im, name, 1); }
 void save_image(image im, const char *name) { save_image_stb(im, name, 0); }
 
-image *make_alloc_image(int height, int width, int channels){
+image *make_alloc_image(int height, int width, int channels) {
     image *img = (image *)malloc(sizeof(image));
     img->width = width;
     img->height = height;
@@ -63,7 +68,7 @@ image *make_alloc_image(int height, int width, int channels){
     img->data = calloc(height * width * channels, sizeof(float));
     return img;
 }
-image* load_image_stb(const char *filename, int channels) {
+image *load_image_stb(const char *filename, int channels) {
     int w, h, c;
     unsigned char *data = stbi_load(filename, &w, &h, &c, channels);
     if (!data) {
@@ -89,7 +94,7 @@ image* load_image_stb(const char *filename, int channels) {
     return im;
 }
 
-image *load_alloc_image(const char *filename){
+image *load_alloc_image(const char *filename) {
     return load_image_stb(filename, 0);
 }
 
@@ -120,9 +125,7 @@ image load_image_binary(const char *fname) {
     return im;
 }
 
-void free_image(image im) {
-    free(im.data);
-}
+void free_image(image im) { free(im.data); }
 
 image copy_image(const image img) {
     image dest_img = make_empty_image(img.width, img.height, img.channels);
@@ -224,7 +227,7 @@ void copy_rgb_color(const rgb rgb, color c) {
     c.data[2] = rgb.b;
 }
 
-color make_rgb_color(float r, float g, float b){
+color make_rgb_color(float r, float g, float b) {
     color c = make_color(3);
     c.data[0] = r;
     c.data[1] = g;

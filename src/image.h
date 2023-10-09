@@ -21,6 +21,8 @@ typedef struct color {
     float *data;
     int channels;
 } color;
+// print image
+void print_image(image);
 
 // image creation
 int image_area(image);
