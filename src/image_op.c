@@ -77,7 +77,8 @@ image image_min_max_norm(image img) {
     return dest;
 }
 
-image image_mask_scalar(image img, float_eq_fn fn, float comparee, float scalar) {
+image image_mask_scalar(image img, float_eq_fn fn, float comparee,
+                        float scalar) {
     image mask = make_image_like(img);
     float pixel;
     for (int c = 0; c < img.channels; c++) {
@@ -95,7 +96,8 @@ image image_mask_scalar(image img, float_eq_fn fn, float comparee, float scalar)
     return mask;
 }
 
-image img_mask_cmp_img(image img, float_eq_fn fn, image comparee, float scalar) {
+image img_mask_cmp_img(image img, float_eq_fn fn, image comparee,
+                       float scalar) {
     image mask = make_image_like(img);
     float pixel1, pixel2;
     for (int c = 0; c < img.channels; c++) {
@@ -154,8 +156,8 @@ image img_mask_eq_img(image img, image comparee, float scalar) {
     return img_mask_cmp_img(img, eq, comparee, scalar);
 }
 
-image img_where_scalar(image img, float_eq_fn fn, float comparee, float true_value,
-                        float false_value) {
+image img_where_scalar(image img, float_eq_fn fn, float comparee,
+                       float true_value, float false_value) {
     image mask = make_image_like(img);
     float pixel;
     for (int c = 0; c < img.channels; c++) {
@@ -174,29 +176,29 @@ image img_where_scalar(image img, float_eq_fn fn, float comparee, float true_val
 }
 
 image img_where_lt_scalar(image img, float comparee, float true_value,
-                           float false_value) {
+                          float false_value) {
     return img_where_scalar(img, lt, comparee, true_value, false_value);
 }
 image img_where_gt_scalar(image img, float comparee, float true_value,
-                           float false_value) {
+                          float false_value) {
 
     return img_where_scalar(img, gt, comparee, true_value, false_value);
 }
 image img_where_eq_scalar(image img, float comparee, float true_value,
-                           float false_value) {
+                          float false_value) {
     return img_where_scalar(img, eq, comparee, true_value, false_value);
 }
 image img_where_le_scalar(image img, float comparee, float true_value,
-                           float false_value) {
+                          float false_value) {
     return img_where_scalar(img, le, comparee, true_value, false_value);
 }
 image img_where_ge_scalar(image img, float comparee, float true_value,
-                           float false_value) {
+                          float false_value) {
     return img_where_scalar(img, ge, comparee, true_value, false_value);
 }
 
 image img_where_img(image img, float_eq_fn fn, image comparee, float true_value,
-                     float false_value) {
+                    float false_value) {
     image mask = make_image_like(img);
     float pixel1, pixel2;
     for (int c = 0; c < img.channels; c++) {
@@ -215,29 +217,29 @@ image img_where_img(image img, float_eq_fn fn, image comparee, float true_value,
     return mask;
 }
 image img_where_lt_img(image img, image comparee, float true_value,
-                        float false_value) {
+                       float false_value) {
     return img_where_img(img, lt, comparee, true_value, false_value);
 }
 
 image img_where_gt_img(image img, image comparee, float true_value,
-                        float false_value) {
+                       float false_value) {
     return img_where_img(img, gt, comparee, true_value, false_value);
 }
 image img_where_eq_img(image img, image comparee, float true_value,
-                        float false_value) {
+                       float false_value) {
     return img_where_img(img, eq, comparee, true_value, false_value);
 }
 image img_where_le_img(image img, image comparee, float true_value,
-                        float false_value) {
+                       float false_value) {
     return img_where_img(img, le, comparee, true_value, false_value);
 }
 image img_where_ge_img(image img, image comparee, float true_value,
-                        float false_value) {
+                       float false_value) {
     return img_where_img(img, ge, comparee, true_value, false_value);
 }
 
-image img_blend_if_scalar(image img, float_eq_fn fn, float comparee, image true_img,
-                           image false_img) {
+image img_blend_if_scalar(image img, float_eq_fn fn, float comparee,
+                          image true_img, image false_img) {
     image mask = make_image_like(img);
     float pixel1;
     for (int c = 0; c < img.channels; c++) {
@@ -256,23 +258,23 @@ image img_blend_if_scalar(image img, float_eq_fn fn, float comparee, image true_
 }
 
 image img_blend_if_lt_scalar(image img, float comparee, image true_img,
-                              image false_img) {
+                             image false_img) {
     return img_blend_if_scalar(img, lt, comparee, true_img, false_img);
 }
 image img_blend_if_gt_scalar(image img, float comparee, image true_img,
-                              image false_img) {
+                             image false_img) {
     return img_blend_if_scalar(img, gt, comparee, true_img, false_img);
 }
 image img_blend_if_eq_scalar(image img, float comparee, image true_img,
-                              image false_img) {
+                             image false_img) {
     return img_blend_if_scalar(img, eq, comparee, true_img, false_img);
 }
 image img_blend_if_le_scalar(image img, float comparee, image true_img,
-                              image false_img) {
+                             image false_img) {
     return img_blend_if_scalar(img, le, comparee, true_img, false_img);
 }
 image img_blend_if_ge_scalar(image img, float comparee, image true_img,
-                              image false_img) {
+                             image false_img) {
     return img_blend_if_scalar(img, ge, comparee, true_img, false_img);
 }
 
@@ -284,14 +286,16 @@ image img_blend(image st_image, image nd_image, float alpha) {
             for (int x = 0; x < st_image.width; x++) {
                 st_pixel = get_pixel(st_image, y, x, c);
                 nd_pixel = get_pixel(nd_image, y, x, c);
-                set_pixel(blend, y, x, c, alpha * st_pixel + (1 - alpha) * nd_pixel);
+                set_pixel(blend, y, x, c,
+                          alpha * st_pixel + (1 - alpha) * nd_pixel);
             }
         }
     }
     return blend;
 }
 
-void imgrgb_where_map_(image img, image dest, cmp_color_fn fn, maploc_img_fn map_fn) {
+void imgrgb_where_map_(image img, image dest, cmp_color_fn fn,
+                       maploc_img_fn map_fn) {
     color c = make_color(img.channels);
     for (int y = 0; y < img.height; y++) {
         for (int x = 0; x < img.width; x++) {
@@ -302,4 +306,24 @@ void imgrgb_where_map_(image img, image dest, cmp_color_fn fn, maploc_img_fn map
         }
     }
     free_color(c);
+}
+
+image img_extract_patch_yxhw(image img, int y, int x, int h, int w) {
+    image dest = make_image(h, w, img.channels);
+    float pixel;
+    for (int c = 0; c < img.channels; c++) {
+        for (int j = y; j < y + h; j++) {
+            for (int i = x; i < x + w; i++) {
+                pixel = get_pixel(img, j, i, c);
+                set_pixel(dest, j - y, i - x, c, pixel);
+            }
+        }
+    }
+    return dest;
+}
+
+image img_extract_patch_tlbr(image img, point2di tl, point2di br) {
+    int w = br.x - tl.x;
+    int h = br.y - tl.y;
+    return img_extract_patch_yxhw(img, tl.y, tl.x, h, w);
 }
