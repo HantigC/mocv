@@ -2,6 +2,7 @@
 #include "image.h"
 #include "image_draw.h"
 #include "image_op.h"
+#include "histogram.h"
 #include "image_stats.h"
 #include "img.h"
 #include "kernel.h"
@@ -120,9 +121,22 @@ int main() {
     color red_color = rgb_to_color(red);
     point2di tl = {.y = 193, .x = 518};
     point2di br = {.y = 344, .x = 601};
+    image patch = img_extract_patch_tlbr(*first_image, tl, br);
+
     draw_rectangle_tlbr_rgb_(*first_image, tl, br, red);
     print_image(*first_image);
-    show_image_cv(first_image, "window", 0, 0);
+    printf("\n");
+    show_image_cv(first_image, "window", 1, 0);
+    print_image(patch);
+    printf("\n");
+    show_image_cv(&patch, "patch", 1, 0);
+    image patch255 = image_muls(patch, 255.0f);
+    histogram rgb_hist = compute_rgb_image_hist(patch255);
+    image hist_img = render_rgb_histogram(rgb_hist, 480, 640);
+    print_hist(rgb_hist);
+    show_image_cv(&hist_img, "histogram", 0, 0);
+
+
 
     printf("\n");
     show_image_sequence_cv(sliced_seq, "highway", 24, 0);
