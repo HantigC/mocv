@@ -121,3 +121,57 @@ void concat_2_lists_(list *l1, list *l2) {
     l1->last = l2->last;
     l1->length += l2->length;
 }
+
+void *item_at(list *a_list, int k) {
+    if (k >= a_list->length) {
+        fprintf(stderr, "Index error: `k` is out of bounds. %d/%d", k,
+                a_list->length);
+        exit(-1);
+    }
+
+    node *n = a_list->first;
+    while (k > 0) {
+        n = n->next;
+        k--;
+    }
+    return n->item;
+}
+
+list *slice_at(list *a_list, int start, int end) {
+
+    if (start >= a_list->length || start < 0) {
+        fprintf(stderr, "Index error: `start` is out of bounds. %d/%d", start,
+                a_list->length);
+        exit(-1);
+    }
+
+    if (end >= a_list->length) {
+        fprintf(stderr, "Index error: `end` is out of bounds. %d/%d", end,
+                a_list->length);
+        exit(-1);
+    }
+    if (start > end) {
+
+        fprintf(stderr, "start is bigger than end: start=%d, end=%d", start,
+                end);
+        exit(-1);
+    }
+    if (end < 0) {
+        end = a_list->length;
+    }
+
+    int amount = end - start;
+    node *n = a_list->first;
+    while (start > 0) {
+        n = n->next;
+        start--;
+    }
+    list *dest = list_make();
+
+    while (amount > 0) {
+        list_insert(dest, n->item);
+        n = n->next;
+        amount--;
+    }
+    return dest;
+}

@@ -39,6 +39,8 @@ void concat_2_lists_(list *l1, list *l2);
 void *get_first(list *);
 void *get_last(list *);
 void **list_to_array(list *);
+void *item_at(list *, int);
+list *slice_at(list *, int start, int end);
 
 void free_list(list *);
 node *next(node *);
