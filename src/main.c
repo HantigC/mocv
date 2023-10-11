@@ -9,9 +9,8 @@
 #include "keypoints/harris.h"
 #include "keypoints/keypoint.h"
 #include "list.h"
-#include "optical_flow/lk.h"
-#include "panorama.h"
 #include "stdx.h"
+#include "tracking.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -112,41 +111,68 @@ list *load_images(list *filenames_list) {
     }
     return images_list;
 }
+void track_the_ball(list *image_sequence, rect start_bbox,
+                    rgb_cube_hist rgb_3d_hist, rgb color) {
+
+    point2di tl = get_tli(start_bbox);
+    point2di br = get_bri(start_bbox);
+    kernel gaus = kernel_make_ones(br.y - tl.y, br.x - tl.x);
+
+    node *n = image_sequence->first;
+    image *img;
+    rect bbox = start_bbox;
+
+    while (n) {
+        img = n->item;
+        image second_img256 = image_muls(*img, 255.0f);
+        image back_proj = back_project(second_img256, rgb_3d_hist);
+        rect new_rect = meanshift(back_proj, bbox, gaus, 1.0f, 10);
+        point2di new_tl = get_tli(new_rect);
+        point2di new_br = get_bri(new_rect);
+        bbox = new_rect;
+
+        draw_rectangle_tlbr_rgb_(*img, new_tl, new_br, color);
+        free_image(second_img256);
+        free_image(back_proj);
+        n = n->next;
+    }
+    free_kernel(gaus);
+}
+
+void free_sequence(list *alist) {
+
+    node *n = alist->first;
+    image *img;
+
+    while (n) {
+        img = (image *)n->item;
+        free_image(*img);
+        n = n->next;
+    }
+    free_list(alist);
+}
+
 int main() {
     list *image_sequence =
         cv_load_image_sequence("./resources/bouncing_ball.mp4");
-    list *sliced_seq = slice_at(image_sequence, 10, 100);
+    list *sliced_seq = slice_at(image_sequence, 11, 100);
     image *first_image = item_at(image_sequence, 10);
-    image *second_image = item_at(image_sequence, 11);
     rgb red = {.r = 1.0f, .g = 0.0f, .b = 0.0f};
-    color red_color = rgb_to_color(red);
     point2di tl = {.y = 157, .x = 144};
     point2di br = {.y = 206, .x = 188};
+    rect bbox = rect_from_2p(tl, br);
+
     image patch = img_extract_patch_tlbr(*first_image, tl, br);
 
-    draw_rectangle_tlbr_rgb_(*first_image, tl, br, red);
-    print_image(*first_image);
-    printf("%d\n", image_sequence->length);
-    show_image_cv(first_image, "window", 0, 0);
-    // print_image(patch);
-    // printf("\n");
-    show_image_cv(&patch, "patch", 0, 0);
     image patch255 = image_muls(patch, 255.0f);
-    // histogram rgb_hist = compute_rgb_image_hist(patch255);
-    // image hist_img = render_rgb_histogram(rgb_hist, 480, 640);
-    // print_hist(rgb_hist);
     rgb_cube_hist rgb_3d_hist = compute_rgb_cube_hist(patch255, 8, 8, 8);
-    image rgb_hist_img = render_rgb_cube_histogram(rgb_3d_hist, 480, 640, red);
 
-    // show_image_cv(&hist_img, "histogram", 0, 0);
-    show_image_cv(&rgb_hist_img, "rgb_histogram", 0, 0);
-    // print_rgb_cube_hist(rgb_3d_hist);
-    image_muls_(*second_image, 255.0f);
-    image back_proj = back_project(*second_image, rgb_3d_hist);
-    image_min_max_norm_(back_proj);
-    show_image_cv(&back_proj, "brak project", 0, 0);
-
-    // printf("\n");
+    track_the_ball(sliced_seq, bbox, rgb_3d_hist, red);
     show_image_sequence_cv(sliced_seq, "highway", 60, 0);
+    free_image(patch255);
+    free_image(patch);
+    free_rgb_cube_hist(rgb_3d_hist);
+    free_list(sliced_seq);
+    free_sequence(image_sequence);
     return 0;
 }
