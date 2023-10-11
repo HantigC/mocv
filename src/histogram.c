@@ -1,4 +1,5 @@
 #include "histogram.h"
+#include "array.h"
 #include "image_draw.h"
 #include "mathx.h"
 #include "stdio.h"
@@ -7,14 +8,6 @@
 histogram *alloc_empty_hist() {
     histogram *hist = malloc(sizeof(histogram));
     return hist;
-}
-
-bucket *alloc_bucket(float start, float end, float count) {
-    bucket *buck = (bucket *)malloc(sizeof(bucket));
-    buck->start = start;
-    buck->end = end;
-    buck->count = count;
-    return buck;
 }
 
 float histogram_total(histogram hist) {
@@ -34,7 +27,7 @@ histogram make_hist(int bins, float min_value, float max_value, float eps) {
 void init_hist(histogram *hist, int bins, float min_value, float max_value,
                float eps) {
     hist->bins = bins;
-    hist->counts = (int *)calloc(bins, sizeof(int));
+    hist->counts = (float *)calloc(bins, sizeof(float));
     hist->step = (max_value - min_value + eps) / bins;
     hist->eps = eps;
     hist->min_value = min_value;
@@ -45,13 +38,13 @@ void init_hist(histogram *hist, int bins, float min_value, float max_value,
 void add_to_hist(histogram *hist, float x) {
     int bin = (x - hist->min_value) / hist->step;
     bin = CLAMP(bin, 0, hist->bins - 1);
-    hist->counts[bin] += 1;
+    hist->counts[bin] += 1.0f;
     hist->total_count += 1;
 }
 
 histogram copy_hist(histogram hist) {
     histogram dest = hist;
-    hist.counts = (int *)calloc(hist.bins, sizeof(int));
+    hist.counts = (float *)calloc(hist.bins, sizeof(float));
     for (int i = 0; i < hist.bins; i++) {
         dest.counts[i] = hist.counts[i];
     }
@@ -82,18 +75,19 @@ int histogram_max_count(histogram hist) {
     return max_count;
 }
 
-void render_histogram_(image img, histogram hist, rgb color) {
+void render_hist_counter_(float *counts, int bins, image img, rgb color) {
+
     int offset = img.width * 0.01f;
-    float bin_width = (float)(img.width - 2.0f * offset) / (float)hist.bins;
+    float bin_width = (float)(img.width - 2.0f * offset) / bins;
 
     int bin_height;
     point2di tl;
     point2di br;
 
-    float max_count = (float)histogram_max_count(hist);
-    for (int bin = 0; bin < hist.bins; bin++) {
+    float max_count = max_float(counts, bins);
+    for (int bin = 0; bin < bins; bin++) {
         tl.x = bin * bin_width + offset;
-        bin_height = (img.height - offset) * hist.counts[bin] / max_count;
+        bin_height = (img.height - offset) * counts[bin] / max_count;
         tl.y = img.height - bin_height;
         br.x = bin * bin_width + bin_width + offset;
         br.y = img.height;
@@ -101,16 +95,22 @@ void render_histogram_(image img, histogram hist, rgb color) {
     }
 }
 
-void print_bucket(bucket buck) {
-    printf("Bucket(start=%f, end=%f, count=%f)", buck.start, buck.end,
-           buck.count);
+image render_hist_counter(float *counts, int bins, int height, int width,
+                         rgb color) {
+    image img = make_image(height, width, 3);
+    render_hist_counter_(counts, bins, img, color);
+    return img;
 }
+void render_histogram_(image img, histogram hist, rgb color) {
+    render_hist_counter_(hist.counts, hist.bins, img, color);
+}
+
 void print_hist(histogram hist) {
     printf("Histogram(bins=%d, step=%f, min_value=%f, max_value=%f, total=%d",
            hist.bins, hist.step, hist.min_value, hist.max_value,
            hist.total_count);
     for (int bin = 0; bin < hist.bins; bin++) {
-        printf("bin[%d]=%d:", bin, hist.counts[bin]);
+        printf("bin[%d]=%f:", bin, hist.counts[bin]);
         printf("\n");
     }
 }
