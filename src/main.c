@@ -1,8 +1,8 @@
 #include "array.h"
+#include "histogram.h"
 #include "image.h"
 #include "image_draw.h"
 #include "image_op.h"
-#include "histogram.h"
 #include "image_stats.h"
 #include "img.h"
 #include "kernel.h"
@@ -114,31 +114,39 @@ list *load_images(list *filenames_list) {
 }
 int main() {
     list *image_sequence =
-        cv_load_image_sequence("./resources/person_walking.mp4");
-    list *sliced_seq = slice_at(image_sequence, 40, 100);
-    image *first_image = item_at(image_sequence, 40);
+        cv_load_image_sequence("./resources/bouncing_ball.mp4");
+    list *sliced_seq = slice_at(image_sequence, 10, 100);
+    image *first_image = item_at(image_sequence, 10);
+    image *second_image = item_at(image_sequence, 11);
     rgb red = {.r = 1.0f, .g = 0.0f, .b = 0.0f};
     color red_color = rgb_to_color(red);
-    point2di tl = {.y = 193, .x = 518};
-    point2di br = {.y = 344, .x = 601};
+    point2di tl = {.y = 157, .x = 144};
+    point2di br = {.y = 206, .x = 188};
     image patch = img_extract_patch_tlbr(*first_image, tl, br);
 
     draw_rectangle_tlbr_rgb_(*first_image, tl, br, red);
     print_image(*first_image);
-    printf("\n");
-    show_image_cv(first_image, "window", 1, 0);
-    print_image(patch);
-    printf("\n");
-    show_image_cv(&patch, "patch", 1, 0);
+    printf("%d\n", image_sequence->length);
+    show_image_cv(first_image, "window", 0, 0);
+    // print_image(patch);
+    // printf("\n");
+    show_image_cv(&patch, "patch", 0, 0);
     image patch255 = image_muls(patch, 255.0f);
-    histogram rgb_hist = compute_rgb_image_hist(patch255);
-    image hist_img = render_rgb_histogram(rgb_hist, 480, 640);
-    print_hist(rgb_hist);
-    show_image_cv(&hist_img, "histogram", 0, 0);
+    // histogram rgb_hist = compute_rgb_image_hist(patch255);
+    // image hist_img = render_rgb_histogram(rgb_hist, 480, 640);
+    // print_hist(rgb_hist);
+    rgb_cube_hist rgb_3d_hist = compute_rgb_cube_hist(patch255, 8, 8, 8);
+    image rgb_hist_img = render_rgb_cube_histogram(rgb_3d_hist, 480, 640, red);
 
+    // show_image_cv(&hist_img, "histogram", 0, 0);
+    show_image_cv(&rgb_hist_img, "rgb_histogram", 0, 0);
+    // print_rgb_cube_hist(rgb_3d_hist);
+    image_muls_(*second_image, 255.0f);
+    image back_proj = back_project(*second_image, rgb_3d_hist);
+    image_min_max_norm_(back_proj);
+    show_image_cv(&back_proj, "brak project", 0, 0);
 
-
-    printf("\n");
-    show_image_sequence_cv(sliced_seq, "highway", 24, 0);
+    // printf("\n");
+    show_image_sequence_cv(sliced_seq, "highway", 60, 0);
     return 0;
 }

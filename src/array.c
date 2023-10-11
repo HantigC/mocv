@@ -1,4 +1,5 @@
 #include "array.h"
+#include "mathx.h"
 #include <math.h>
 #include <stdlib.h>
 
@@ -18,4 +19,12 @@ int *int_range(int n) {
         a[i] = i;
     }
     return a;
+}
+
+float max_float(float *xs, int length) {
+    float max_so_far = xs[0];
+    for (int i = 1; i < length; i++) {
+        max_so_far = MAX(xs[i], max_so_far);
+    }
+    return max_so_far;
 }
