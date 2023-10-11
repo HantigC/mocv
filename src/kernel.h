@@ -35,7 +35,6 @@ kernel kernel_make_full(int height, int width, int fill_value);
 kernel kernel_make_ones(int height, int width);
 void kernel_fill_(kernel kernek, float fill_value);
 
-void free_kernel_content(kernel kernel);
 void free_kernel(kernel kernel);
 
 void kernel_mul_scalar_(kernel kernel, float scalar);

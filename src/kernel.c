@@ -25,7 +25,8 @@ kernel kernel_make_gaus(int height, int width, float sigma) {
         for (int x = 0; x < width; ++x) {
             centered_y = y - center_y;
             centered_x = x - center_x;
-            value = gaussian(centered_y * centered_y + centered_x * centered_x, 0, sigma);
+            value = gaussian(centered_y * centered_y + centered_x * centered_x,
+                             0, sigma);
             kernel_set_value(gaus, y, x, value);
             acc += value;
         }
@@ -84,6 +85,23 @@ kernel kernel_make_sobely() {
     return sobel;
 }
 
+float safe_apply_kernel_at(const image img, const kernel krn, int y, int x,
+                           int c) {
+    float acc = 0.0f;
+    int half_h = krn.height / 2;
+    int half_w = krn.width / 2;
+    int y_min = CLAMP(y - half_h, 0, img.height - 1);
+    int y_max = CLAMP(y + half_h, 0, img.height - 1);
+    int x_min = CLAMP(x - half_w, 0, img.width - 1);
+    int x_max = CLAMP(x + half_w, 0, img.width - 1);
+    for (int i = y_min; i <= y_max; ++i) {
+        for (int j = x_min; j <= x_max; ++j) {
+            acc += kernel_get_value(krn, i, j) * get_pixel(img, i, j, c);
+        }
+    }
+    return acc;
+}
+
 float apply_kernel_at(const image img, const kernel krn, int y, int x, int c) {
     float acc = 0.0f;
     int half_h = krn.height / 2;
@@ -139,13 +157,14 @@ float fill_apply_kernel_at(image img, kernel krn, int y, int x, int c,
 image kernel_convolve_no_border(image img, kernel kernel) {
     int half_w = kernel.width / 2;
     int half_h = kernel.height / 2;
-    image dest = make_image(img.height - 2 * half_h + 1, img.width - 2 * half_w + 1,
-                             img.channels);
+    image dest = make_image(img.height - 2 * half_h + 1,
+                            img.width - 2 * half_w + 1, img.channels);
     for (int c = 0; c < dest.channels; ++c) {
         for (int y = 0; y < dest.height; ++y) {
             for (int x = 0; x < dest.width; ++x) {
-                set_pixel(dest, y, x, c,
-                          apply_kernel_at(img, kernel, y + half_h, x + half_w, c));
+                set_pixel(
+                    dest, y, x, c,
+                    apply_kernel_at(img, kernel, y + half_h, x + half_w, c));
             }
         }
     }
@@ -153,7 +172,7 @@ image kernel_convolve_no_border(image img, kernel kernel) {
 }
 
 image kernel_convolve(const image img, const kernel kernel, enum strategy how,
-                       float fill) {
+                      float fill) {
     image dest = make_image_like(img);
     int half_w = kernel.width / 2;
     int half_h = kernel.height / 2;
@@ -166,28 +185,32 @@ image kernel_convolve(const image img, const kernel kernel, enum strategy how,
 
         for (int y = 0; y < half_h; ++y) {
             for (int x = 0; x < img.width; ++x) {
-                set_pixel(dest, y, x, c,
-                          fill_apply_kernel_at(img, kernel, y, x, c, how, fill));
+                set_pixel(
+                    dest, y, x, c,
+                    fill_apply_kernel_at(img, kernel, y, x, c, how, fill));
             }
         }
 
         for (int y = img.height - half_h; y < img.height; ++y) {
             for (int x = 0; x < img.width; ++x) {
-                set_pixel(dest, y, x, c,
-                          fill_apply_kernel_at(img, kernel, y, x, c, how, fill));
+                set_pixel(
+                    dest, y, x, c,
+                    fill_apply_kernel_at(img, kernel, y, x, c, how, fill));
             }
         }
 
         for (int x = 0; x < half_w; ++x) {
             for (int y = 0; y < img.height; ++y) {
-                set_pixel(dest, y, x, c,
-                          fill_apply_kernel_at(img, kernel, y, x, c, how, fill));
+                set_pixel(
+                    dest, y, x, c,
+                    fill_apply_kernel_at(img, kernel, y, x, c, how, fill));
             }
         }
         for (int x = img.width - half_w; x < img.width; ++x) {
             for (int y = 0; y < img.height; ++y) {
-                set_pixel(dest, y, x, c,
-                          fill_apply_kernel_at(img, kernel, y, x, c, how, fill));
+                set_pixel(
+                    dest, y, x, c,
+                    fill_apply_kernel_at(img, kernel, y, x, c, how, fill));
             }
         }
     }
@@ -219,14 +242,10 @@ kernel kernel_make_ones(int height, int width) {
     return kernel_make_full(height, width, 1.0f);
 }
 
-void free_kernel_content(kernel kernel) { free(kernel.data); }
-
 void kernel_mul_scalar_(kernel kernel, float scalar) {
     for (int i = 0; i < kernel_length(kernel); i++) {
         kernel.data[i] = kernel.data[i] * scalar;
     }
 }
 
-void free_kernel(kernel kernel) {
-    free(kernel.data);
-}
+void free_kernel(kernel kernel) { free(kernel.data); }
