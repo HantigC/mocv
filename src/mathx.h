@@ -41,4 +41,6 @@ float gaussian(float x, float mu, float sigma);
 float *normalize(float *xs, int length, float normalizer, int inplace);
 point2di *make_empty_point2di();
 point2di *make_point2di(int x, int y);
+float euclidean_distancef(point2df sp, point2df ep);
+point2df compute_middlef(point2df sp, point2df ep);
 #endif

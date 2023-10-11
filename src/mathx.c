@@ -50,3 +50,14 @@ int max_int(int cnt, ...) {
     va_end(ap);
     return maximum;
 }
+
+float euclidean_distancef(point2df sp, point2df ep) {
+    float dx = sp.x - ep.x;
+    float dy = sp.y - ep.y;
+    return sqrt(dx * dx + dy * dy);
+}
+
+point2df compute_middlef(point2df sp, point2df ep){
+    point2df middle = {.x = (sp.x + ep.x) / 2, .y = (sp.y + ep.y) / 2};
+    return middle;
+}

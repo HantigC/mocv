@@ -27,4 +27,5 @@ image back_project(image img, rgb_cube_hist rgb_hist);
 image render_rgb_histogram(histogram rgb_histogram, int height, int width);
 
 void print_rgb_cube_hist(rgb_cube_hist rgb_hist);
+void free_rgb_cube_hist(rgb_cube_hist);
 #endif

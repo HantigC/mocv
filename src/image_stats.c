@@ -162,3 +162,8 @@ void print_rgb_cube_hist(rgb_cube_hist rgb_hist) {
         }
     }
 }
+
+void free_rgb_cube_hist(rgb_cube_hist h){
+    free(h.counts);
+
+}
