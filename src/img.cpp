@@ -3,17 +3,16 @@
 #include <stdlib.h>
 
 extern "C" {
-#include "img.h"
 #include "image.h"
+#include "img.h"
 #include "list.h"
 
-
-void print_click_mouse_callback(int event, int x, int y, int flags, void* userdata)
-{
+void print_click_mouse_callback(int event, int x, int y, int flags,
+                                void *userdata) {
     // Check if the left button is pressed
-    if (event == cv::EVENT_LBUTTONDOWN)
-    {
-        printf("Left button of the mouse is clicked - position (y=%d, x=%d)\n", y, x);
+    if (event == cv::EVENT_LBUTTONDOWN) {
+        printf("Left button of the mouse is clicked - position (y=%d, x=%d)\n",
+               y, x);
     }
 }
 
@@ -124,14 +123,20 @@ image *load_image_cv(const char *filename, int channels) {
     return im;
 }
 
-
-int show_image_cv(image *im, const char *name, int ms, mouse_callback callback) {
+void _show_image_cv(image *im, const char *name) {
     cv::Mat m;
     m = image_to_mat(im);
     imshow(name, m);
-    if (callback){
+}
+
+int show_image_cv(image *im, const char *name, int ms,
+                  mouse_callback callback) {
+    cv::Mat m;
+    m = image_to_mat(im);
+    imshow(name, m);
+    if (callback) {
         cv::setMouseCallback(name, callback, 0);
-    }else{
+    } else {
         cv::setMouseCallback(name, print_click_mouse_callback, 0);
     }
     int c = cv::waitKey(ms);
@@ -147,10 +152,17 @@ int show_image_sequence_cv(list *image_sequence, const char *window_name,
     node *iter = image_sequence->first;
     image *img;
     int wwait_time = (int)1000.0 / fps;
+
+    if (callback) {
+        cv::setMouseCallback(window_name, callback, 0);
+    } else {
+        cv::setMouseCallback(window_name, print_click_mouse_callback, 0);
+    }
     while (iter) {
         img = (image *)iter->item;
-        show_image_cv(img, window_name, wwait_time, callback);
+        _show_image_cv(img, window_name);
         iter = iter->next;
+        cv::waitKey(wwait_time);
     }
 
     cv::destroyWindow(window_name);
