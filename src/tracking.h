@@ -1,6 +1,9 @@
 #include "image.h"
-#include "rect.h"
 #include "kernel.h"
+#include "rect.h"
 
-rect meanshift(const image prob_img, const rect bbox, kernel krn, float eps,
-               int iterations);
+rect meanshift(image prob_img, rect bbox, float eps, int iterations,
+               float expansion);
+
+rect camshift(image prob_img, rect bbox, float eps, int iterations,
+              float expansion);

@@ -65,20 +65,6 @@ float l1_d(void *k1, void *k2) {
     return total / d1->length;
 }
 
-int **just_make_it() {
-    int **a = (int **)calloc(6, sizeof(int *));
-    for (int i = 0; i < 6; i++) {
-        a[i] = (int *)calloc(1, sizeof(int));
-    }
-    a[0][0] = 4;
-    a[1][0] = 2;
-    a[2][0] = 5;
-    a[3][0] = 1;
-    a[4][0] = 6;
-    a[5][0] = 3;
-    return a;
-}
-
 enum CMP int_cmp(void *x, void *y) {
     int *xp = (int *)x;
     int *yp = (int *)y;
@@ -126,12 +112,15 @@ void track_the_ball(list *image_sequence, rect start_bbox,
         img = n->item;
         image second_img256 = image_muls(*img, 255.0f);
         image back_proj = back_project(second_img256, rgb_3d_hist);
-        rect new_rect = meanshift(back_proj, bbox, gaus, 1.0f, 10);
+        rect new_rect = camshift(back_proj, bbox, 1.0f, 10, 3.0f);
         point2di new_tl = get_tli(new_rect);
         point2di new_br = get_bri(new_rect);
         bbox = new_rect;
 
         draw_rectangle_tlbr_rgb_(*img, new_tl, new_br, color);
+        print_rect(new_rect);
+        printf("\n");
+        show_image_cv(img, "ball", -1, 0);
         free_image(second_img256);
         free_image(back_proj);
         n = n->next;
