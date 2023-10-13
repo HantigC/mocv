@@ -17,16 +17,11 @@ kernel kernel_make_gaus(int height, int width, float sigma) {
     kernel gaus = make_kernel(height, width);
     int center_x = width / 2;
     int center_y = height / 2;
-    int centered_x = 0.0f;
-    int centered_y = 0.0f;
     float acc = 0.0f;
     float value = 0.0f;
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            centered_y = y - center_y;
-            centered_x = x - center_x;
-            value = gaussian(centered_y * centered_y + centered_x * centered_x,
-                             0, sigma);
+            value = gaussian(y, center_y, sigma) * gaussian(x, center_x, sigma);
             kernel_set_value(gaus, y, x, value);
             acc += value;
         }
