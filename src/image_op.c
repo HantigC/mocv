@@ -327,3 +327,30 @@ image img_extract_patch_tlbr(image img, point2di tl, point2di br) {
     int h = br.y - tl.y;
     return img_extract_patch_yxhw(img, tl.y, tl.x, h, w);
 }
+
+float accumulate_patch(image img, int y, int x, int h, int w, int from_ch,
+                       int to_ch, op2f acc_fn, float init_acc) {
+    float acc = init_acc;
+    for (int c = from_ch; c < to_ch; c++) {
+        for (int i = y; i < y + h; i++) {
+            for (int j = x; j < x + w; j++) {
+                acc = acc_fn(acc, get_pixel(img, i, j, c));
+            }
+        }
+    }
+    return acc;
+}
+
+float add_op(float x, float y) { return x + y; }
+float sub_op(float x, float y) { return x - y; }
+float mul_op(float x, float y) { return x * y; }
+
+float add_patch(image img, int y, int x, int h, int w, int from_ch, int to_ch) {
+    return accumulate_patch(img, y, x, h, w, from_ch, to_ch, add_op, 0.0f);
+}
+float sub_patch(image img, int y, int x, int h, int w, int from_ch, int to_ch) {
+    return accumulate_patch(img, y, x, h, w, from_ch, to_ch, sub_op, 0.0f);
+}
+float mul_patch(image img, int y, int x, int h, int w, int from_ch, int to_ch) {
+    return accumulate_patch(img, y, x, h, w, from_ch, to_ch, mul_op, 1.0f);
+}

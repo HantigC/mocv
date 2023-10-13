@@ -3,6 +3,7 @@
 #include "image.h"
 #include "mathx.h"
 
+typedef float (*op2f)(float op1, float op2);
 typedef boolean (*float_eq_fn)(float x, float y);
 typedef boolean (*cmp_color_fn)(color x);
 typedef void (*maploc_img_fn)(image img, int y, int x);
@@ -78,5 +79,12 @@ void imgrgb_where_map_(image img, image dest, cmp_color_fn fn,
 // Patch
 image img_extract_patch_yxhw(image img, int y, int x, int h, int w);
 image img_extract_patch_tlbr(image img, point2di tl, point2di br);
+
+float accumulate_patch(image img, int y, int x, int h, int w, int from_ch,
+                       int to_ch, op2f acc_fn, float init_acc);
+
+float add_patch(image img, int y, int x, int h, int w, int from_ch, int to_ch);
+float sub_patch(image img, int y, int x, int h, int w, int from_ch, int to_ch);
+float mul_patch(image img, int y, int x, int h, int w, int from_ch, int to_ch);
 
 #endif
