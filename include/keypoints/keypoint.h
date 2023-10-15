@@ -32,8 +32,8 @@ void kp_nms_(image kp_img, int nms_hood);
 void extract_patch_descriptors_(const image img, list *keypoints,
                                 int window_size);
 
-match *make_empty_match();
-match *make_match(void *st_kp, void *nd_kp, float distace, int st_index,
+match *alloc_empty_match();
+match *alloc_match(void *st_kp, void *nd_kp, float distace, int st_index,
                   int nd_index);
 list *match_keypoints(list *st_keypoints, list *nd_keypointsm, distance_fn fn);
 void render_keyppoints_(image img, list *descritors, color c, int length);

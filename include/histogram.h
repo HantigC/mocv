@@ -29,7 +29,7 @@ void print_hist(histogram hist);
 void add_to_hist(histogram *hist, float x);
 
 image render_hist_counter(float *counts, int bins, int height, int width,
-                         rgb color);
+                          rgb color);
 void render_hist_counter_(float *counts, int bins, image img, rgb color);
 
 int histogram_max_count(histogram hist);

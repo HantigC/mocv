@@ -1,4 +1,5 @@
 obj/**
+build
 .cache/**
 mocv
 debug_mocv

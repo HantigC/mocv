@@ -113,6 +113,8 @@ void track_the_ball(list *image_sequence, rect start_bbox,
         image second_img256 = image_muls(*img, 255.0f);
         image back_proj = back_project(second_img256, rgb_3d_hist);
         rect new_rect = camshift(back_proj, bbox, 1.0f, 10, 3.0f);
+        image_min_max_norm_(back_proj);
+
         point2di new_tl = get_tli(new_rect);
         point2di new_br = get_bri(new_rect);
         bbox = new_rect;
@@ -120,6 +122,7 @@ void track_the_ball(list *image_sequence, rect start_bbox,
         draw_rectangle_tlbr_rgb_(*img, new_tl, new_br, color);
         print_rect(new_rect);
         printf("\n");
+        show_image_cv(&back_proj, "back_pro", 0, 0);
         show_image_cv(img, "ball", -1, 0);
         free_image(second_img256);
         free_image(back_proj);
@@ -143,7 +146,7 @@ void free_sequence(list *alist) {
 
 int main() {
     list *image_sequence =
-        cv_load_image_sequence("./resources/bouncing_ball.mp4");
+        cv_load_image_sequence("resources/bouncing_ball.mp4");
     list *sliced_seq = slice_at(image_sequence, 11, 100);
     image *first_image = item_at(image_sequence, 10);
     rgb red = {.r = 1.0f, .g = 0.0f, .b = 0.0f};

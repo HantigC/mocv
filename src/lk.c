@@ -1,4 +1,4 @@
-#include "optical_flow/lk.h"
+#include "lk.h"
 #include "assert.h"
 #include "image_draw.h"
 #include "kernel.h"
