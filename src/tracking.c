@@ -76,7 +76,7 @@ rect camshift(image prob_img, rect bbox, float eps, int iterations,
         if (error > prev_error) {
             curr_center = compute_middlef(prev_center, curr_center);
         }
-        box_size = 2 * sqrt(acc);
+        box_size = sqrt(acc) + (est_bbox.h + est_bbox.w) / 4.0f;
 
         est_bbox =
             rect_from_cyxyhw(curr_center.y, curr_center.x, box_size, box_size);

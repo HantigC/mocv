@@ -151,9 +151,9 @@ void print_rgb_cube_hist(rgb_cube_hist rgb_hist) {
     float red_step = 256.0f / rgb_hist.red_bins;
     float blue_step = 256.0f / rgb_hist.blue_bins;
     float green_step = 256.0f / rgb_hist.green_bins;
-    for (float red = 0; red < 256; red+=red_step) {
-        for (float green = 0; green < 256; green+=green_step) {
-            for (float blue = 0; blue < 256; blue+=blue_step) {
+    for (float red = 0; red < 256; red += red_step) {
+        for (float green = 0; green < 256; green += green_step) {
+            for (float blue = 0; blue < 256; blue += blue_step) {
                 prob =
                     get_rgb_probability(rgb_hist, to_rgb(red, green, blue), 0);
                 printf("(%f, %f, %f)=%d", red, green, blue, (int)prob);
@@ -163,7 +163,4 @@ void print_rgb_cube_hist(rgb_cube_hist rgb_hist) {
     }
 }
 
-void free_rgb_cube_hist(rgb_cube_hist h){
-    free(h.counts);
-
-}
+void free_rgb_cube_hist(rgb_cube_hist h) { free(h.counts); }
