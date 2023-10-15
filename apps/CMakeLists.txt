@@ -1,5 +1,5 @@
 set(SUBDIRS
-    track_ball
+    track_color
 )
 foreach(SUBDIR ${SUBDIRS})
     add_subdirectory(${SUBDIR})
