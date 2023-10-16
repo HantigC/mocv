@@ -1,5 +1,7 @@
 obj/**
 build
+.vscode
+.DS_Store
 .cache/**
 mocv
 debug_mocv
