@@ -4,6 +4,6 @@ if [ ! -z "$1" ]; then
     shift
 fi
 echo "Start build for ${BUILD_TYPE}"
-cmake -S. -B build/${BUILD_TYPE} -DCMAKE_BUILD_TYPE=${BUILD_TYP}
-cmake --build build/${BUILD_TYPE} --config ${BUILD_TYPE}
+cmake -S. -B build -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
+cmake --build build --config ${BUILD_TYPE}
 echo "End build for ${BUILD_TYPE}"
