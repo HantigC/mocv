@@ -65,10 +65,6 @@ void track_the_ball(list *image_sequence, rect start_bbox,
         bbox = new_rect;
 
         draw_rectangle_tlbr_rgb_(*img, new_tl, new_br, color);
-        print_rect(new_rect);
-        printf("\n");
-        show_image_cv(&back_proj, "back_pro", 0, 0);
-        show_image_cv(img, "ball", -1, 0);
         free_image(second_img256);
         free_image(back_proj);
         n = n->next;
@@ -91,8 +87,8 @@ void free_sequence(list *alist) {
 
 int main() {
     list *image_sequence =
-        cv_load_image_sequence("resources/bouncing_ball.mp4");
-    list *sliced_seq = slice_at(image_sequence, 11, 100);
+        cv_load_image_sequence("apps/track_color/resources/bouncing_ball.mp4");
+    list *sliced_seq = slice_at(image_sequence, 11, 200);
     image *first_image = item_at(image_sequence, 10);
     rgb red = {.r = 1.0f, .g = 0.0f, .b = 0.0f};
     point2di tl = {.y = 157, .x = 144};
@@ -105,7 +101,7 @@ int main() {
     rgb_cube_hist rgb_3d_hist = compute_rgb_cube_hist(patch255, 8, 8, 8);
 
     track_the_ball(sliced_seq, bbox, rgb_3d_hist, red);
-    show_image_sequence_cv(sliced_seq, "highway", 60, 0);
+    show_image_sequence_cv(sliced_seq, "bouncing_ball", 60, 0);
     free_image(patch255);
     free_image(patch);
     free_rgb_cube_hist(rgb_3d_hist);

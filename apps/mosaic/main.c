@@ -69,7 +69,6 @@ int main() {
     show_image_cv(&reiner3, "Reiner3", 1, 0);
     show_image_cv(&reiner6, "Reiner5", 1, 0);
     show_image_cv(&panorama, "panorama", 0, 0);
-    save_png(panorama, "apps/mosaic/resources/mosaic");
 
     return 0;
 }
