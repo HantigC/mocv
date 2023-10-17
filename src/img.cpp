@@ -169,6 +169,30 @@ int show_image_sequence_cv(list *image_sequence, const char *window_name,
     return 0;
 }
 
+void save_sequence_cv(list *image_sequence, char *name, int fps) {
+    image *img = (image *)image_sequence->first->item;
+
+    cv::VideoWriter out(
+        name, cv::VideoWriter::fourcc('M', 'P', '4', 'V'), fps,
+        cv::Size(img->width, img->height));
+
+    node *n = image_sequence->first;
+    while (n) {
+        img = (image *)n->item;
+        cv::Mat frame = image_to_mat(img);
+
+        if (frame.empty()) {
+            std::cerr << "Frame corrupted" << std::endl;
+            break;
+        }
+
+        out.write(frame);
+        n = n->next;
+    }
+
+    out.release();
+}
+
 int load_show_image_cv(const char *imagename, int channels, const char *name,
                        int ms) {
     image *im = load_image_cv(imagename, channels);

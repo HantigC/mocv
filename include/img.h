@@ -12,4 +12,5 @@ int load_show_image_cv(const char *imagename, int channels, const char *name,
 int show_image_sequence_cv(list *image_sequence, const char *window_name,
                            int fps, mouse_callback callback);
 list *cv_load_image_sequence(const char *filename);
+void save_sequence_cv(list *image_sequence, char *name, int fps);
 #endif
