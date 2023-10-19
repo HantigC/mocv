@@ -1,11 +1,27 @@
 #include "image_op.h"
 
+#include <float.h>
 void image_muls_(image img, float scalar) {
     for (int i = 0; i < image_size(img); ++i) {
         img.data[i] = img.data[i] * scalar;
     }
 }
 
+void image_pow2_(image img) {
+
+    for (int i = 0; i < image_size(img); ++i) {
+        img.data[i] = img.data[i] * img.data[i];
+    }
+}
+
+image image_pow2(image img) {
+
+    image dest = make_image_like(img);
+    for (int i = 0; i < image_size(img); ++i) {
+        dest.data[i] = img.data[i] * img.data[i];
+    }
+    return dest;
+}
 image image_muls(image img, float scalar) {
     image dest = make_image_like(img);
     for (int i = 0; i < image_size(img); ++i) {
@@ -353,4 +369,81 @@ float sub_patch(image img, int y, int x, int h, int w, int from_ch, int to_ch) {
 }
 float mul_patch(image img, int y, int x, int h, int w, int from_ch, int to_ch) {
     return accumulate_patch(img, y, x, h, w, from_ch, to_ch, mul_op, 1.0f);
+}
+
+float ssd(image first_image, image second_image, rect st_rect, rect nd_rect) {
+    float acc = 0.0f;
+    float value;
+
+    for (int c = 0; c < first_image.channels; c++) {
+        for (int y = 0; y < st_rect.h; y++) {
+            for (int x = 0; x < st_rect.w; x++) {
+                value =
+                    get_pixel(first_image, y + st_rect.y, x + st_rect.x, c) -
+                    get_pixel(second_image, y + nd_rect.y, x + nd_rect.x, c);
+                acc += value * value;
+            }
+        }
+    }
+    return acc;
+}
+
+point2di horizontal_scan(image first_image, image second_image, int y, int x,
+                         int window_height, int window_width) {
+    float min_diff = FLT_MAX;
+    point2di min_p = {.x = x, .y = y};
+    int half_h = window_height / 2;
+    int half_w = window_width / 2;
+    float ssd_diff;
+
+    float value;
+
+    for (int nd_x = x; nd_x < second_image.width - half_w; nd_x++) {
+        ssd_diff = 0.0f;
+        for (int wy = -half_h; wy <= half_h; wy++) {
+            for (int wx = -half_w; wx <= half_w; wx++) {
+                for (int c = 0; c < first_image.channels; c++) {
+                    value = get_pixel(first_image, wy + y, wx + x, c) -
+                            get_pixel(second_image, wy + y, wx + nd_x, c);
+                    ssd_diff += value * value;
+                }
+            }
+        }
+        if (ssd_diff < min_diff) {
+            min_diff = ssd_diff;
+            min_p.x = nd_x;
+        }
+    }
+    return min_p;
+}
+image patch_disparity(image first_image, image second_image, int window_height,
+                      int window_width) {
+
+    int half_h = window_height / 2;
+    int half_w = window_width / 2;
+    image disparity_img = make_image(first_image.height, first_image.width, 1);
+    point2di best_p;
+
+    for (int y = half_h; y < first_image.height - half_h; y++) {
+        for (int x = half_w; x < first_image.width - half_w; x++) {
+            best_p = horizontal_scan(first_image, second_image, y, x,
+                                     window_height, window_width);
+            set_pixel(disparity_img, y, x, 0, (best_p.x - x));
+        }
+    }
+    return disparity_img;
+}
+
+image clip_values(image img, float min_value, float max_value) {
+
+    image dest = make_image_like(img);
+    for (int i = 0; i < image_size(img); ++i) {
+        dest.data[i] = CLAMP(img.data[i], min_value, max_value);
+    }
+    return dest;
+}
+void clip_values_(image img, float min_value, float max_value) {
+    for (int i = 0; i < image_size(img); ++i) {
+        img.data[i] = CLAMP(img.data[i], min_value, max_value);
+    }
 }

@@ -1,4 +1,5 @@
 #include "mathx.h"
+#include "stdio.h"
 float gaussian(float x, float mu, float sigma) {
     float a = (x - mu) / sigma;
     return exp(-0.5f * a * a);
@@ -57,7 +58,9 @@ float euclidean_distancef(point2df sp, point2df ep) {
     return sqrt(dx * dx + dy * dy);
 }
 
-point2df compute_middlef(point2df sp, point2df ep){
+point2df compute_middlef(point2df sp, point2df ep) {
     point2df middle = {.x = (sp.x + ep.x) / 2, .y = (sp.y + ep.y) / 2};
     return middle;
 }
+
+void print_point2di(point2di p) { printf("Point(y=%d, x=%d)\n", p.y, p.x); }

@@ -9,10 +9,16 @@ extern "C" {
 
 void print_click_mouse_callback(int event, int x, int y, int flags,
                                 void *userdata) {
+    image *img = (image *)userdata;
     // Check if the left button is pressed
     if (event == cv::EVENT_LBUTTONDOWN) {
-        printf("Left button of the mouse is clicked - position (y=%d, x=%d)\n",
-               y, x);
+        printf(
+            "Left button of the mouse is clicked - position (y=%d, x=%d)=(%f",
+            y, x, get_pixel(*img, y, x, 0));
+        for (int i = 1; i < img->channels; i++) {
+            printf(", %f", get_pixel(*img, y, x, i));
+        }
+        printf(")\n");
     }
 }
 
@@ -137,7 +143,7 @@ int show_image_cv(image *im, const char *name, int ms,
     if (callback) {
         cv::setMouseCallback(name, callback, 0);
     } else {
-        cv::setMouseCallback(name, print_click_mouse_callback, 0);
+        cv::setMouseCallback(name, print_click_mouse_callback, im);
     }
     int c = cv::waitKey(ms);
     if (c != -1)
@@ -172,9 +178,8 @@ int show_image_sequence_cv(list *image_sequence, const char *window_name,
 void save_sequence_cv(list *image_sequence, char *name, int fps) {
     image *img = (image *)image_sequence->first->item;
 
-    cv::VideoWriter out(
-        name, cv::VideoWriter::fourcc('M', 'P', '4', 'V'), fps,
-        cv::Size(img->width, img->height));
+    cv::VideoWriter out(name, cv::VideoWriter::fourcc('M', 'P', '4', 'V'), fps,
+                        cv::Size(img->width, img->height));
 
     node *n = image_sequence->first;
     while (n) {

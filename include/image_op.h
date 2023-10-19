@@ -9,12 +9,16 @@ typedef boolean (*cmp_color_fn)(color x);
 typedef void (*maploc_img_fn)(image img, int y, int x);
 void image_muls_(image img, float scalar);
 image image_muls(image, float scalar);
+void image_pow2_(image);
+image image_pow2(image img);
 
 void image_muls_channel_(image, float scalar, int channel);
 image image_muls_channel(image, float scalar, int channel);
 
 void image_min_max_norm_(image);
 image image_min_max_norm(image);
+image clip_values(image img, float min_value, float max_value);
+void clip_values_(image img, float min_value, float max_value);
 
 minmax image_get_min_max(image img, int channel);
 
@@ -86,5 +90,10 @@ float accumulate_patch(image img, int y, int x, int h, int w, int from_ch,
 float add_patch(image img, int y, int x, int h, int w, int from_ch, int to_ch);
 float sub_patch(image img, int y, int x, int h, int w, int from_ch, int to_ch);
 float mul_patch(image img, int y, int x, int h, int w, int from_ch, int to_ch);
+
+point2di horizontal_scan(image first_image, image second_image, int y, int x,
+                         int window_height, int window_width);
+image patch_disparity(image first_image, image second_image, int window_height,
+                      int window_width);
 
 #endif
