@@ -5,7 +5,8 @@
 
 typedef void (*mouse_callback)(int event, int x, int y, int flags,
                                void *user_data);
-int show_image_cv(image *im, const char *name, int ms, mouse_callback callback);
+int show_image_cv(image *im, const char *name, int ms, mouse_callback callback,
+                  void *user_data);
 int load_show_image_cv(const char *imagename, int channels, const char *name,
                        int ms);
 

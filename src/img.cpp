@@ -135,13 +135,13 @@ void _show_image_cv(image *im, const char *name) {
     imshow(name, m);
 }
 
-int show_image_cv(image *im, const char *name, int ms,
-                  mouse_callback callback) {
+int show_image_cv(image *im, const char *name, int ms, mouse_callback callback,
+                  void *user_data) {
     cv::Mat m;
     m = image_to_mat(im);
     imshow(name, m);
     if (callback) {
-        cv::setMouseCallback(name, callback, 0);
+        cv::setMouseCallback(name, callback, user_data);
     } else {
         cv::setMouseCallback(name, print_click_mouse_callback, im);
     }

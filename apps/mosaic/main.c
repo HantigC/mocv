@@ -64,11 +64,11 @@ int main() {
     list *keypoints_list = extract_keypoint_images(images_list);
     image panorama =
         combine_pano(images_list, keypoints_list, l1_d, 1.0f, 20, 100, 6);
-    show_image_cv(&reiner1, "Reiner1", 1, 0);
-    show_image_cv(&reiner2, "Reiner2", 1, 0);
-    show_image_cv(&reiner3, "Reiner3", 1, 0);
-    show_image_cv(&reiner6, "Reiner5", 1, 0);
-    show_image_cv(&panorama, "panorama", 0, 0);
+    show_image_cv(&reiner1, "Reiner1", 1, 0, 0);
+    show_image_cv(&reiner2, "Reiner2", 1, 0, 0);
+    show_image_cv(&reiner3, "Reiner3", 1, 0, 0);
+    show_image_cv(&reiner6, "Reiner5", 1, 0, 0);
+    show_image_cv(&panorama, "panorama", 0, 0, 0);
 
     return 0;
 }
