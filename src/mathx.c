@@ -64,3 +64,13 @@ point2df compute_middlef(point2df sp, point2df ep) {
 }
 
 void print_point2di(point2di p) { printf("Point(y=%d, x=%d)\n", p.y, p.x); }
+
+float ssd(float x, float y) {
+    float v = y - x;
+    return v * v;
+}
+
+float sad(float x, float y) {
+    float v = y - x;
+    return ABS(v);
+}

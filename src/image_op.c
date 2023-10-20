@@ -1,6 +1,6 @@
 #include "image_op.h"
-
 #include <float.h>
+
 void image_muls_(image img, float scalar) {
     for (int i = 0; i < image_size(img); ++i) {
         img.data[i] = img.data[i] * scalar;
@@ -371,25 +371,8 @@ float mul_patch(image img, int y, int x, int h, int w, int from_ch, int to_ch) {
     return accumulate_patch(img, y, x, h, w, from_ch, to_ch, mul_op, 1.0f);
 }
 
-float ssd(image first_image, image second_image, rect st_rect, rect nd_rect) {
-    float acc = 0.0f;
-    float value;
-
-    for (int c = 0; c < first_image.channels; c++) {
-        for (int y = 0; y < st_rect.h; y++) {
-            for (int x = 0; x < st_rect.w; x++) {
-                value =
-                    get_pixel(first_image, y + st_rect.y, x + st_rect.x, c) -
-                    get_pixel(second_image, y + nd_rect.y, x + nd_rect.x, c);
-                acc += value * value;
-            }
-        }
-    }
-    return acc;
-}
-
 point2di horizontal_scan(image first_image, image second_image, int y, int x,
-                         int window_height, int window_width) {
+                         int window_height, int window_width, op2f fn) {
     float min_diff = FLT_MAX;
     point2di min_p = {.x = x, .y = y};
     int half_h = window_height / 2;
@@ -397,15 +380,17 @@ point2di horizontal_scan(image first_image, image second_image, int y, int x,
     float ssd_diff;
 
     float value;
+    float st_pixel, nd_pixel;
 
     for (int nd_x = x; nd_x < second_image.width - half_w; nd_x++) {
         ssd_diff = 0.0f;
         for (int wy = -half_h; wy <= half_h; wy++) {
             for (int wx = -half_w; wx <= half_w; wx++) {
                 for (int c = 0; c < first_image.channels; c++) {
-                    value = get_pixel(first_image, wy + y, wx + x, c) -
-                            get_pixel(second_image, wy + y, wx + nd_x, c);
-                    ssd_diff += value * value;
+                    st_pixel = get_pixel(first_image, wy + y, wx + x, c);
+                    nd_pixel = get_pixel(second_image, wy + y, wx + nd_x, c);
+                    value = fn(st_pixel, nd_pixel);
+                    ssd_diff += value;
                 }
             }
         }
@@ -417,7 +402,7 @@ point2di horizontal_scan(image first_image, image second_image, int y, int x,
     return min_p;
 }
 image patch_disparity(image first_image, image second_image, int window_height,
-                      int window_width) {
+                      int window_width, op2f fn) {
 
     int half_h = window_height / 2;
     int half_w = window_width / 2;
@@ -427,11 +412,23 @@ image patch_disparity(image first_image, image second_image, int window_height,
     for (int y = half_h; y < first_image.height - half_h; y++) {
         for (int x = half_w; x < first_image.width - half_w; x++) {
             best_p = horizontal_scan(first_image, second_image, y, x,
-                                     window_height, window_width);
+                                     window_height, window_width, fn);
             set_pixel(disparity_img, y, x, 0, (best_p.x - x));
         }
     }
     return disparity_img;
+}
+
+image ssd_disparity(image first_image, image second_image, int window_height,
+                    int window_width) {
+    return patch_disparity(first_image, second_image, window_height,
+                           window_width, ssd);
+}
+
+image sad_disparity(image first_image, image second_image, int window_height,
+                    int window_width) {
+    return patch_disparity(first_image, second_image, window_height,
+                           window_width, ssd);
 }
 
 image clip_values(image img, float min_value, float max_value) {

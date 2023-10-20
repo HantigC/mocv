@@ -92,8 +92,14 @@ float sub_patch(image img, int y, int x, int h, int w, int from_ch, int to_ch);
 float mul_patch(image img, int y, int x, int h, int w, int from_ch, int to_ch);
 
 point2di horizontal_scan(image first_image, image second_image, int y, int x,
-                         int window_height, int window_width);
+                         int window_height, int window_width, op2f fn);
 image patch_disparity(image first_image, image second_image, int window_height,
+                      int window_width, op2f fn);
+
+image ssd_disparity(image first_image, image second_image, int window_height,
+                      int window_width);
+
+image sad_disparity(image first_image, image second_image, int window_height,
                       int window_width);
 
 #endif

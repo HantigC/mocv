@@ -44,4 +44,7 @@ point2di *make_point2di(int x, int y);
 float euclidean_distancef(point2df sp, point2df ep);
 point2df compute_middlef(point2df sp, point2df ep);
 void print_point2di(point2di p);
+
+float ssd(float x, float y);
+float sad(float x, float y);
 #endif
