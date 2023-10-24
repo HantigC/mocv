@@ -84,7 +84,7 @@ image *load_image_stb(const char *filename, int channels) {
         for (j = 0; j < h; ++j) {
             for (i = 0; i < w; ++i) {
                 int src_index = k + c * i + c * w * j;
-                set_pixel(*im, j, i, k, (float)data[src_index] / 255.);
+                set_pixel(*im, j, i, k, (float)data[src_index]);
             }
         }
     }

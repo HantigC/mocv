@@ -39,15 +39,15 @@ image *mat_to_image(cv::Mat m) {
     return im;
 }
 
-cv::Vec3b get_rgb_or_gray(image *img, int y, int x, float scalar) {
+cv::Vec3b get_rgb_or_gray(image *img, int y, int x) {
     if (img->channels == 3 || img->channels == 4) {
-        return cv::Vec3b((unsigned char)(get_pixel(*img, y, x, 2) * scalar),
-                         (unsigned char)(get_pixel(*img, y, x, 1) * scalar),
-                         (unsigned char)(get_pixel(*img, y, x, 0) * scalar));
+        return cv::Vec3b((unsigned char)(get_pixel(*img, y, x, 2)),
+                         (unsigned char)(get_pixel(*img, y, x, 1)),
+                         (unsigned char)(get_pixel(*img, y, x, 0)));
     } else {
-        return cv::Vec3b((unsigned char)(get_pixel(*img, y, x, 0) * scalar),
-                         (unsigned char)(get_pixel(*img, y, x, 0) * scalar),
-                         (unsigned char)(get_pixel(*img, y, x, 0) * scalar));
+        return cv::Vec3b((unsigned char)(get_pixel(*img, y, x, 0)),
+                         (unsigned char)(get_pixel(*img, y, x, 0)),
+                         (unsigned char)(get_pixel(*img, y, x, 0)));
     }
 }
 
@@ -56,7 +56,7 @@ cv::Mat image_to_mat(image *im) {
     cv::Mat m(im->height, im->width, CV_8UC3);
     for (j = 0; j < im->height; ++j) {
         for (i = 0; i < im->width; ++i) {
-            m.at<cv::Vec3b>(j, i) = get_rgb_or_gray(im, j, i, 255.0f);
+            m.at<cv::Vec3b>(j, i) = get_rgb_or_gray(im, j, i);
         }
     }
     return m;
@@ -67,7 +67,7 @@ cv::Mat image_to_mat_noscale(image *im) {
     cv::Mat m(im->height, im->width, CV_8UC3);
     for (j = 0; j < im->height; ++j) {
         for (i = 0; i < im->width; ++i) {
-            m.at<cv::Vec3b>(j, i) = get_rgb_or_gray(im, j, i, 1.0f);
+            m.at<cv::Vec3b>(j, i) = get_rgb_or_gray(im, j, i);
         }
     }
     return m;
