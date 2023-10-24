@@ -47,4 +47,5 @@ void print_point2di(point2di p);
 
 float ssd(float x, float y);
 float sad(float x, float y);
+float acc_mean(float prev_mean, float cur_item, float n);
 #endif

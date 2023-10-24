@@ -74,3 +74,8 @@ float sad(float x, float y) {
     float v = y - x;
     return ABS(v);
 }
+
+float acc_mean(float prev_mean, float cur_item, float n) {
+    float ratio = (n - 1) / n;
+    return prev_mean * ratio + cur_item / n;
+}

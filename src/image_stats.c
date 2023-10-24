@@ -164,3 +164,33 @@ void print_rgb_cube_hist(rgb_cube_hist rgb_hist) {
 }
 
 void free_rgb_cube_hist(rgb_cube_hist h) { free(h.counts); }
+
+void compute_stats_(image first_image, int y, int x, int h_radius, int w_radius,
+                    mean_var *per_channel_stats) {
+
+    for (int c = 0; c < first_image.channels; c++) {
+        float e = 0.0f, esq = 0.0f;
+        float pixel;
+        float pixel_count = 0.0f;
+
+        for (int i = y - h_radius; i <= y + h_radius; ++i) {
+            for (int j = x - w_radius; j <= x + w_radius; ++j) {
+                pixel = get_pixel(first_image, i, j, c);
+                e += pixel;
+                esq += pixel * pixel;
+                pixel_count += 1.0f;
+            }
+        }
+        e /= pixel_count;
+        esq /= pixel_count;
+        per_channel_stats[c].mean = e;
+        per_channel_stats[c].var = esq - e * e;
+    }
+}
+mean_var *compute_stats(image first_image, int y, int x, int h_radius,
+                        int w_radius) {
+    mean_var *per_channel_stats =
+        (mean_var *)calloc(first_image.channels, sizeof(mean_var));
+    compute_stats_(first_image, y, x, h_radius, w_radius, per_channel_stats);
+    return per_channel_stats;
+}

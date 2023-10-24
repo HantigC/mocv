@@ -1,5 +1,7 @@
 #include "image_op.h"
 #include <float.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 void image_muls_(image img, float scalar) {
     for (int i = 0; i < image_size(img); ++i) {
@@ -364,56 +366,138 @@ float mul_op(float x, float y) { return x * y; }
 float add_patch(image img, int y, int x, int h, int w, int from_ch, int to_ch) {
     return accumulate_patch(img, y, x, h, w, from_ch, to_ch, add_op, 0.0f);
 }
+
 float sub_patch(image img, int y, int x, int h, int w, int from_ch, int to_ch) {
     return accumulate_patch(img, y, x, h, w, from_ch, to_ch, sub_op, 0.0f);
 }
+
 float mul_patch(image img, int y, int x, int h, int w, int from_ch, int to_ch) {
     return accumulate_patch(img, y, x, h, w, from_ch, to_ch, mul_op, 1.0f);
 }
 
-point2di horizontal_scan(image first_image, image second_image, int y, int x,
+float patch_ncc(image first_image, image second_image, point2di first_p,
+                point2di second_p, int h_radius, int w_radius,
+                mean_var *st_per_channel_stats) {
+
+    mean_var *nd_per_channel_stats =
+        compute_stats(second_image, second_p.y, second_p.x, h_radius, w_radius);
+
+    float e = 0.0f, esq = 0.0f;
+    float st_pixel, nd_pixel;
+    float pixel_count = 0.0f;
+    float numerator;
+    float denominator;
+    float pixel_num = (h_radius + h_radius + 1) * (w_radius + w_radius + 1);
+    float nc;
+    float h_mean_acc = 0.0f;
+    float c_st_pixel, c_nd_pixel;
+
+    for (int c = 0; c < first_image.channels; c++) {
+        numerator = 0.0f;
+        pixel_count = 0.0f;
+        for (int i = -h_radius; i <= h_radius; ++i) {
+            for (int j = -w_radius; j <= w_radius; ++j) {
+                st_pixel =
+                    get_pixel(first_image, i + first_p.y, j + first_p.x, c);
+                nd_pixel =
+                    get_pixel(second_image, i + second_p.y, j + second_p.x, c);
+                c_nd_pixel = (nd_pixel - nd_per_channel_stats[c].mean);
+                c_st_pixel = (st_pixel - st_per_channel_stats[c].mean);
+                numerator += c_st_pixel * c_nd_pixel;
+            }
+        }
+        numerator /= pixel_num;
+
+        denominator = st_per_channel_stats[c].var * nd_per_channel_stats[c].var;
+        nc = numerator / sqrt(denominator);
+        // nc = sqrt(nc);
+        h_mean_acc = acc_mean(h_mean_acc, 1.0f / nc, c + 1);
+    }
+    free(nd_per_channel_stats);
+    return 1.0f / h_mean_acc;
+}
+
+point2di ncc_hscan(image first_image, image second_image, int y, int x,
+                   int h_radius, int w_radius) {
+    float max_corr = FLT_MIN;
+    point2di max_p = {.x = x, .y = y};
+    point2di st_center = {.x = x, .y = y};
+    point2di nd_center;
+
+    mean_var *st_per_channel_stats =
+        compute_stats(first_image, y, x, h_radius, w_radius);
+
+    float corr_value;
+
+    for (int nd_x = x; nd_x >= w_radius; nd_x--) {
+        nd_center = (point2di){.x = nd_x, .y = y};
+        corr_value = patch_ncc(first_image, second_image, st_center, nd_center,
+                               h_radius, w_radius, st_per_channel_stats);
+        if (max_corr < corr_value) {
+            max_corr = corr_value;
+            max_p.x = nd_x;
+            // print_point2di(max_p);
+        }
+    }
+    free(st_per_channel_stats);
+    return max_p;
+}
+image ncc_disparity(image first_image, image second_image, int h_radius,
+                    int w_radius) {
+
+    image disparity_img = make_image(first_image.height, first_image.width, 1);
+    point2di best_p;
+
+    for (int y = h_radius; y < first_image.height - h_radius; y++) {
+        for (int x = w_radius; x < first_image.width - w_radius; x++) {
+            best_p =
+                ncc_hscan(first_image, second_image, y, x, h_radius, w_radius);
+            set_pixel(disparity_img, y, x, 0, (x - best_p.x));
+        }
+    }
+    return disparity_img;
+}
+
+point2di horizontal_scan(image left_image, image right_image, int y, int x,
                          int window_height, int window_width, op2f fn) {
     float min_diff = FLT_MAX;
     point2di min_p = {.x = x, .y = y};
     int half_h = window_height / 2;
     int half_w = window_width / 2;
-    float ssd_diff;
-
-    float value;
+    float diff;
     float st_pixel, nd_pixel;
-
-    for (int nd_x = x; nd_x < second_image.width - half_w; nd_x++) {
-        ssd_diff = 0.0f;
+    float value;
+    for (int nd_x = x; nd_x >= half_w; nd_x--) {
+        diff = 0.0f;
         for (int wy = -half_h; wy <= half_h; wy++) {
             for (int wx = -half_w; wx <= half_w; wx++) {
-                for (int c = 0; c < first_image.channels; c++) {
-                    st_pixel = get_pixel(first_image, wy + y, wx + x, c);
-                    nd_pixel = get_pixel(second_image, wy + y, wx + nd_x, c);
+                for (int c = 0; c < left_image.channels; c++) {
+                    st_pixel = get_pixel(left_image, wy + y, wx + x, c);
+                    nd_pixel = get_pixel(right_image, wy + y, wx + nd_x, c);
                     value = fn(st_pixel, nd_pixel);
-                    ssd_diff += value;
+                    diff += value;
                 }
             }
         }
-        if (ssd_diff < min_diff) {
-            min_diff = ssd_diff;
+        if (diff < min_diff) {
+            min_diff = diff;
             min_p.x = nd_x;
         }
     }
     return min_p;
 }
+
 image patch_disparity(image first_image, image second_image, int window_height,
                       int window_width, op2f fn) {
-
     int half_h = window_height / 2;
     int half_w = window_width / 2;
     image disparity_img = make_image(first_image.height, first_image.width, 1);
     point2di best_p;
-
     for (int y = half_h; y < first_image.height - half_h; y++) {
         for (int x = half_w; x < first_image.width - half_w; x++) {
             best_p = horizontal_scan(first_image, second_image, y, x,
                                      window_height, window_width, fn);
-            set_pixel(disparity_img, y, x, 0, (best_p.x - x));
+            set_pixel(disparity_img, y, x, 0, (x - best_p.x));
         }
     }
     return disparity_img;

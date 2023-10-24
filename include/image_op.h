@@ -2,11 +2,14 @@
 #define IMAGE_OP
 #include "image.h"
 #include "mathx.h"
+#include "image_stats.h"
 
 typedef float (*op2f)(float op1, float op2);
 typedef boolean (*float_eq_fn)(float x, float y);
 typedef boolean (*cmp_color_fn)(color x);
 typedef void (*maploc_img_fn)(image img, int y, int x);
+
+
 void image_muls_(image img, float scalar);
 image image_muls(image, float scalar);
 void image_pow2_(image);
@@ -97,9 +100,17 @@ image patch_disparity(image first_image, image second_image, int window_height,
                       int window_width, op2f fn);
 
 image ssd_disparity(image first_image, image second_image, int window_height,
-                      int window_width);
+                    int window_width);
 
 image sad_disparity(image first_image, image second_image, int window_height,
-                      int window_width);
+                    int window_width);
+
+float patch_ncc(image first_image, image second_image, point2di first_p,
+                point2di second_p, int h_radius, int w_radius,
+                mean_var *st_per_channel_stats);
+point2di ncc_hscan(image first_image, image second_image, int y, int x,
+                   int h_radius, int w_radius);
+image ncc_disparity(image first_image, image second_image, int h_radius,
+                    int w_radius);
 
 #endif

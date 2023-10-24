@@ -8,6 +8,17 @@ typedef struct rgb_cube_hist {
     int total_count;
 } rgb_cube_hist;
 
+typedef struct mean_var {
+    float mean;
+    float var;
+
+} mean_var;
+
+mean_var *compute_stats(image first_image, int y, int x, int h_radius,
+                        int w_radius);
+
+void compute_stats_(image first_image, int y, int x, int h_radius, int w_radius,
+                    mean_var *per_channel_stats);
 rgb_cube_hist make_3d_rgb_hist(int red_bins, int green_bins, int blue_bins);
 rgb_cube_hist compute_rgb_cube_hist(image img, int red_bins, int green_bins,
                                     int blue_bins);
