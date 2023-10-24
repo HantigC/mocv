@@ -45,5 +45,7 @@ list *slice_at(list *, int start, int end);
 void free_list(list *);
 node *next(node *);
 list *list_filter(p_fn, list *);
+#define foreach(item, list) \
+    for(node * item = list->first; item != NULL; item = item->next)
 
 #endif
