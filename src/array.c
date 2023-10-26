@@ -28,3 +28,60 @@ float max_float(float *xs, int length) {
     }
     return max_so_far;
 }
+
+array make_shaped_array(int nd, ...) {
+    array a = {0};
+    a.nd = nd;
+    a.shape = (int *)calloc(nd, sizeof(int));
+    a.length = 1;
+
+    va_list ap;
+
+    va_start(ap, nd);
+    for (int i = 0; i < nd; i++) {
+        a.shape[i] = va_arg(ap, int);
+        a.length *= a.shape[i];
+    }
+    va_end(ap);
+    a.data = (float *)calloc(a.length, sizeof(float));
+    return a;
+}
+
+int array_location(array a, int *coordinate) {
+    int dim = a.nd;
+
+    int i;
+    int location = coordinate[a.nd - 1];
+    int offset = a.shape[a.nd - 1];
+    for (i = a.nd - 2; i >= 0; i--) {
+        location += offset * coordinate[i];
+        offset *= a.shape[i];
+    }
+    return location;
+}
+void extract_coorinate(int dim, va_list ap, int *coord) {
+    for (int i = 0; i < dim; i++) {
+        coord[i] = va_arg(ap, int);
+    }
+}
+
+float _array_at(array a, ...) {
+
+    int coordinate[a.nd];
+    va_list ap;
+    va_start(ap, a);
+    extract_coorinate(a.nd, ap, coordinate);
+    va_end(ap);
+    int location = array_location(a, coordinate);
+    return a.data[location];
+}
+
+void _array_set_at(float v, array a, ...) {
+    int coordinate[a.nd];
+    va_list ap;
+    va_start(ap, a);
+    extract_coorinate(a.nd, ap, coordinate);
+    va_end(ap);
+    int location = array_location(a, coordinate);
+    a.data[location] = v;
+}
