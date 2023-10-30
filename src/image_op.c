@@ -665,6 +665,23 @@ float window_sad(image first_image,
     return ssd_val / cnt;
 }
 
+void extract_disparity_to_array(array cost_table, array disparity_array) {
+    int nd_x = cost_table.shape[0] - 1, st_x = cost_table.shape[1] - 1;
+    int nd_dx = array_at(cost_table, idx(nd_x, st_x, 1)),
+        st_dx = array_at(cost_table, idx(nd_x, st_x, 2));
+    while (nd_x > 0 || st_x > 0) {
+        if (nd_dx == 0 || st_dx == 0) {
+            array_set_at(-1.0f, disparity_array, idx(st_x));
+        } else if (nd_dx == -1 && st_dx == -1) {
+            array_set_at(st_x - nd_x, disparity_array, idx(st_x));
+        }
+
+        nd_x += nd_dx;
+        st_x += st_dx;
+        nd_dx = array_at(cost_table, idx(nd_x, st_x, 1));
+        st_dx = array_at(cost_table, idx(nd_x, st_x, 2));
+    }
+}
 void dp_h_disparity(image first_image,
                     image second_image,
                     int first_y,
@@ -673,42 +690,34 @@ void dp_h_disparity(image first_image,
                     int radius_w,
                     float oclusion_constant,
                     wfn fn,
-                    image cost_table,
-                    image disparity_array) {
-    // array cost_table =
-    //     make_shaped_array(3, 3, second_image.width + 1, first_image.width +
-    //     1);
+                    array cost_table,
+                    array disparity_array) {
 
     point2di p = {.x = radius_w, .y = first_y};
     point2di st_p = {.x = radius_w, .y = first_y},
              nd_p = {.x = radius_w, .y = second_y};
 
     float disimilarity;
-    set_pixel(cost_table, 0, 0, 0, 0.0f);
+    array_set_at(0.0f, cost_table, idx(0, 0, 0.0f));
     float x_cost, y_cost, yx_cost;
     float min_disimilarity;
 
-    // printf("%04d", 0);
-
-    for (int x = 1; x < cost_table.width; x++) {
-        x_cost = get_pixel(cost_table, 0, x - 1, 0) + oclusion_constant;
-        // printf("|%04d", (int)x_cost);
-        set_pixel(cost_table, 0, x, 0, x_cost);
-        set_pixel(cost_table, 0, x, 1, 0);
-        set_pixel(cost_table, 0, x, 2, -1);
+    for (int x = 1; x < cost_table.shape[1]; x++) {
+        x_cost = array_at(cost_table, idx(0, x - 1, 0)) + oclusion_constant;
+        array_set_at(x_cost, cost_table, idx(0, x, 0));
+        array_set_at(0, cost_table, idx(0, x, 1));
+        array_set_at(-1, cost_table, idx(0, x, 2));
     }
-    for (int nd_x = 1; nd_x < cost_table.height; nd_x++) {
-        x_cost = get_pixel(cost_table, nd_x - 1, 0, 0) + oclusion_constant;
-        set_pixel(cost_table, nd_x, 0, 0, x_cost);
-        set_pixel(cost_table, nd_x, 0, 1, -1);
-        set_pixel(cost_table, nd_x, 0, 2, 0);
+    for (int nd_x = 1; nd_x < cost_table.shape[0]; nd_x++) {
+        x_cost = array_at(cost_table, nd_x - 1, 0, 0) + oclusion_constant;
+        array_set_at(x_cost, cost_table, idx(nd_x, 0, 0));
+        array_set_at(-1, cost_table, idx(nd_x, 0, 1));
+        array_set_at(0, cost_table, idx(nd_x, 0, 2));
         for (int stx = 1; stx < nd_x; stx++) {
-
-            x_cost =
-                get_pixel(cost_table, nd_x, stx - 1, 0) + oclusion_constant;
-            set_pixel(cost_table, nd_x, stx, 0, x_cost);
-            set_pixel(cost_table, nd_x, stx, 1, 0);
-            set_pixel(cost_table, nd_x, stx, 2, -1);
+            x_cost = array_at(cost_table, nd_x, stx - 1, 0) + oclusion_constant;
+            array_set_at(x_cost, cost_table, idx(nd_x, stx, 0));
+            array_set_at(0, cost_table, idx(nd_x, stx, 1));
+            array_set_at(-1, cost_table, idx(nd_x, stx, 2));
         }
     }
     int min_idx;
@@ -723,25 +732,19 @@ void dp_h_disparity(image first_image,
                              .br = {.y = to_h_radius}};
     float values[3];
 
-    // printf("\n");
-    float min_cost;
-    int min_nd_x, min_st_x;
     int nd_x;
     int st_x;
-    for (nd_x = 1; nd_x < cost_table.height; nd_x++) {
-        // printf("|%04d\n", (int)array_at(cost_table, idx(0, nd_x, 0)));
-        min_cost = FLT_MAX;
-        for (st_x = nd_x; st_x < cost_table.width; st_x++) {
+    for (nd_x = 1; nd_x < cost_table.shape[0]; nd_x++) {
+        for (st_x = nd_x; st_x < cost_table.shape[1]; st_x++) {
             window_rect.tl.x = MAX3(-nd_x, -st_x, -radius_w);
             window_rect.br.x = MIN3(second_image.width - nd_x - 1,
                                     first_image.width - st_x - 1,
                                     radius_w);
-            // print_tlbr_rect(window_rect);
 
-            x_cost =
-                get_pixel(cost_table, nd_x, st_x - 1, 0) + oclusion_constant;
-            y_cost =
-                get_pixel(cost_table, nd_x - 1, st_x, 0) + oclusion_constant;
+            x_cost = array_at(cost_table, idx(nd_x, st_x - 1, 0)) +
+                     oclusion_constant;
+            y_cost = array_at(cost_table, idx(nd_x - 1, st_x, 0)) +
+                     oclusion_constant;
 
             disimilarity = fn(first_image,
                               second_image,
@@ -749,77 +752,32 @@ void dp_h_disparity(image first_image,
                               (point2di){.x = nd_x, .y = second_y},
                               window_rect);
             yx_cost =
-                get_pixel(cost_table, nd_x - 1, st_x - 1, 0) + disimilarity;
+                array_at(cost_table, idx(nd_x - 1, st_x - 1, 0)) + disimilarity;
 
             values[0] = x_cost;
             values[1] = y_cost;
             values[2] = yx_cost;
             min_idx = float_argmin(values, 3);
 
-            set_pixel(cost_table, nd_x, st_x, 0, values[min_idx]);
-            if (min_cost > values[min_idx]) {
-                min_cost = values[min_idx];
-                min_nd_x = nd_x;
-                min_st_x = st_x;
-            }
+            array_set_at(values[min_idx], cost_table, idx(nd_x, st_x, 0));
 
-            // printf("|%04d", (int)values[min_idx]);
             switch (min_idx) {
             case 0:
-                set_pixel(cost_table, nd_x, st_x, 1, 0);
-                set_pixel(cost_table, nd_x, st_x, 2, -1);
+                array_set_at(0, cost_table, idx(nd_x, st_x, 1));
+                array_set_at(-1, cost_table, idx(nd_x, st_x, 2));
                 break;
             case 1:
-                set_pixel(cost_table, nd_x, st_x, 1, -1);
-                set_pixel(cost_table, nd_x, st_x, 2, 0);
+                array_set_at(-1, cost_table, idx(nd_x, st_x, 1));
+                array_set_at(0, cost_table, idx(nd_x, st_x, 2));
                 break;
             case 2:
-                set_pixel(cost_table, nd_x, st_x, 1, -1);
-                set_pixel(cost_table, nd_x, st_x, 2, -1);
+                array_set_at(-1, cost_table, idx(nd_x, st_x, 1));
+                array_set_at(-1, cost_table, idx(nd_x, st_x, 2));
                 break;
             }
         }
     }
-    image ct_img = extract_channel(cost_table, 0);
-    image_min_max_norm_(ct_img);
-    image_muls_(ct_img, 255.0f);
-    image ct_img3 = image_convert_1x3(ct_img);
-
-    nd_x = cost_table.height - 1, st_x = cost_table.width - 1;
-    rgb red = to_rgb(255.0f, 0.0f, 0.0f);
-    int nd_dx = get_pixel(cost_table, nd_x, st_x, 1),
-        st_dx = get_pixel(cost_table, nd_x, st_x, 2);
-    // printf("here %d\n", first_y);
-    // printf("here %d\n", first_image.width);
-
-    // array disparity_array = make_shaped_array(1, first_image.width);
-    while (nd_x > 0 || st_x > 0) {
-        set_rgb(ct_img3, nd_x, st_x, red);
-        if (nd_dx == 0 || st_dx == 0) {
-            set_pixel(disparity_array, 0, st_x, 0, -1.0f);
-        } else if (nd_dx == -1 && st_dx == -1) {
-            set_pixel(disparity_array, 0, st_x, 0, st_x - nd_x);
-        }
-
-        nd_x += nd_dx;
-        st_x += st_dx;
-        nd_dx = get_pixel(cost_table, nd_x, st_x, 1);
-        st_dx = get_pixel(cost_table, nd_x, st_x, 2);
-        // printf("(nd_x, st_x, nd_dx, st_dx)=(%d, %d, %d, %d)\n",
-        //        nd_x,
-        //        st_x,
-        //        nd_dx,
-        //        st_dx);
-        //   printf("(dy, dx)=(%1.0f, %1.0f)",
-        //          array_at(cost_table, idx(1, nd_x, st_x)),
-        //          array_at(cost_table, idx(2, nd_x, st_x)));
-    }
-
-    // show_image_cv(&ct_img3, "cost_table", 0, 0, 0);
-    free_image(ct_img);
-    free_image(ct_img3);
-    //  printf("here %d\n", first_y);
-    //   free_array(cost_table);
+    extract_disparity_to_array(cost_table, disparity_array);
 }
 
 image dp_disparity(image first_image,
@@ -829,10 +787,10 @@ image dp_disparity(image first_image,
                    float oclusion_constant,
                    wfn fn) {
     image disparity_img = make_image(first_image.height, first_image.width, 1);
-    image cost_table =
-        make_image(second_image.width + 1, first_image.width + 1, 3);
+    array cost_table =
+        make_shaped_array(3, second_image.width + 1, first_image.width + 1, 3);
 
-    image disparity_array = make_image(1, first_image.width, 1);
+    array disparity_array = make_shaped_array(1, first_image.width);
     point2di best_p;
     for (int y = 0; y < first_image.height; y++) {
         printf("y=%d\n", y);
@@ -846,16 +804,13 @@ image dp_disparity(image first_image,
                        fn,
                        cost_table,
                        disparity_array);
-        for (int x = 1; x < disparity_array.width; x++) {
-            set_pixel(disparity_img,
-                      y,
-                      x - 1,
-                      0,
-                      get_pixel(disparity_array, 0, x, 0));
+        for (int x = 1; x < disparity_array.shape[0]; x++) {
+            set_pixel(
+                disparity_img, y, x - 1, 0, array_at(disparity_array, idx(x)));
         }
     }
-    free_image(disparity_array);
-    free_image(cost_table);
+    free_array(disparity_array);
+    free_array(cost_table);
     return disparity_img;
 }
 

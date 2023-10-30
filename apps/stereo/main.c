@@ -23,8 +23,8 @@ void click_on_disparity(int event, int x, int y, int flags, void *userdata) {
 }
 
 int main(int argc, char *argv[]) {
-    image img1 = load_image("./apps/stereo/resources/tsukuba/img1.png");
-    image img2 = load_image("./apps/stereo/resources/tsukuba/img2.png");
+    image img1 = load_image("./apps/stereo/resources/bowling/view1.png");
+    image img2 = load_image("./apps/stereo/resources/bowling/view2.png");
     rgb red = to_rgb(0.0f, 0.0f, 0.0f);
     int h_radius = 5, w_radius = 5;
     int y = 134, x = 240;
