@@ -1,3 +1,4 @@
+#include "array.h"
 #include "image.h"
 #include "image_draw.h"
 #include "image_op.h"
@@ -11,7 +12,9 @@ void click_on_disparity(int event, int x, int y, int flags, void *userdata) {
     if (event == 1) {
         printf(
             "Left button of the mouse is clicked - position (y=%d, x=%d)=(%f",
-            y, x, get_pixel(*img, y, x, 0) * 20);
+            y,
+            x,
+            get_pixel(*img, y, x, 0) * 20);
         for (int i = 1; i < img->channels; i++) {
             printf(", %f", get_pixel(*img, y, x, i) * 20);
         }
@@ -22,42 +25,18 @@ void click_on_disparity(int event, int x, int y, int flags, void *userdata) {
 int main(int argc, char *argv[]) {
     image img1 = load_image("./apps/stereo/resources/tsukuba/img1.png");
     image img2 = load_image("./apps/stereo/resources/tsukuba/img2.png");
-    rgb red = to_rgb(255.0f, 0.0f, 0.0f);
-    int h_radius = 3, w_radius = 3;
+    rgb red = to_rgb(0.0f, 0.0f, 0.0f);
+    int h_radius = 5, w_radius = 5;
     int y = 134, x = 240;
+    image disparity = dp_disparity(img1, img2, h_radius, w_radius, 150, window_sad);
+    image disparity_map = render_disparity(disparity, red);
 
-    printf("compute ncc disparity\n");
-    clock_t t;
-    t = clock();
-    image ncc_disparity_img = ncc_disparity(img1, img2, 4, 4);
-    clip_values_(ncc_disparity_img, 0, 20);
-    t = clock() - t;
-
-    printf("time taken to compute ncc disparity: %f\n",
-           ((double)t) / CLOCKS_PER_SEC);
-    t = clock();
-    printf("compute ssd disparity\n");
-    image ssd_disparity_img = ssd_disparity(img1, img2, 9, 9);
-    clip_values_(ssd_disparity_img, 0, 20);
-    t = clock() - t;
-    printf("time taken to compute ssd disparity: %f\n",
-           ((double)t) / CLOCKS_PER_SEC);
-
-    t = clock();
-    printf("compute sad disparity\n");
-    image sad_disparity_img = sad_disparity(img1, img2, 9, 9);
-    clip_values_(sad_disparity_img, 0, 20);
-    t = clock() - t;
-    printf("time taken to compute ssd disparity: %f\n",
-           ((double)t) / CLOCKS_PER_SEC);
-    image_min_max_norm_(ncc_disparity_img);
-    image_muls_(ncc_disparity_img, 255.0);
-    image_min_max_norm_(ssd_disparity_img);
-    image_muls_(ssd_disparity_img, 255.0);
-    image_min_max_norm_(sad_disparity_img);
-    image_muls_(sad_disparity_img, 255.0);
-    show_image_cv(&ncc_disparity_img, "stereo_disparity", 1, 0, 0);
-    show_image_cv(&ssd_disparity_img, "ssd_disparity_img", 1, 0, 0);
-    show_image_cv(&sad_disparity_img, "sad_disparity_img", 0, 0, 0);
+    // show_image_cv(&img1, "img1", 1, 0, 0);
+    // printf("show them");
+    // show_image_cv(&img2, "img2", 1, 0, 0);
+    // printf("show them");
+    show_image_cv(&img1, "img1", 1, 0, 0);
+    show_image_cv(&img2, "img2", 1, 0, 0);
+    show_image_cv(&disparity_map, "disparity_map", 0, 0, 0);
     return EXIT_SUCCESS;
 }

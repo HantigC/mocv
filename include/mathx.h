@@ -1,7 +1,6 @@
 #ifndef MATHX_H
 #define MATHX_H
 #include <math.h>
-#include <stdarg.h>
 #include <stdlib.h>
 
 typedef enum boolean {
@@ -29,9 +28,11 @@ typedef struct minmax {
     float max;
 } minmax;
 
-#define MAX(x, y) x < y ? y : x
-#define ABS(x) x >= 0 ? x : -x
-#define MIN(x, y) x < y ? x : y
+#define MAX(x, y) (x) < (y) ? (y) : (x)
+#define ABS(x) (x) >= 0 ? (x) : (-x)
+#define MIN(x, y) (x) < (y) ? (x) : (y)
+#define MIN3(x, y, z) MIN((x), MIN((y), (z)))
+#define MAX3(x, y, z) MAX((x), MAX((y), (z)))
 #define CLAMP(x, min_v, max_v) (MIN(MAX(x, min_v), max_v))
 #define IS_BETWEEN(x, min_v, max_v) (x < min_v ? 0 : ((x > max_v) ? 0 : 1))
 int min_int(int cnt, ...);

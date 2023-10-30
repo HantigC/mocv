@@ -6,7 +6,9 @@
 #include "stb_image_write.h"
 
 void print_image(image img) {
-    printf("Image(width=%d, height=%d, channels=%d)", img.width, img.height,
+    printf("Image(width=%d, height=%d, channels=%d)",
+           img.width,
+           img.height,
            img.channels);
 }
 
@@ -45,7 +47,11 @@ void save_image_stb(image im, const char *name, int png) {
     int success = 0;
     if (png) {
         sprintf(buff, "%s.png", name);
-        success = stbi_write_png(buff, im.width, im.height, im.channels, data,
+        success = stbi_write_png(buff,
+                                 im.width,
+                                 im.height,
+                                 im.channels,
+                                 data,
                                  im.width * im.channels);
     } else {
         sprintf(buff, "%s.jpg", name);
@@ -72,7 +78,9 @@ image *load_image_stb(const char *filename, int channels) {
     int w, h, c;
     unsigned char *data = stbi_load(filename, &w, &h, &c, channels);
     if (!data) {
-        fprintf(stderr, "Cannot load image \"%s\"\nSTB Reason: %s\n", filename,
+        fprintf(stderr,
+                "Cannot load image \"%s\"\nSTB Reason: %s\n",
+                filename,
                 stbi_failure_reason());
         exit(0);
     }
@@ -136,7 +144,7 @@ image copy_image(const image img) {
 }
 
 int compute_location(const image img, int y, int x, int c) {
-    return c * img.width * img.height + y * img.width + x;
+    return c * img.height * img.width + y * img.width + x;
 }
 
 int image_size(const image img) {
@@ -317,4 +325,14 @@ image image_convert_1x3(const image img) {
 rgb to_rgb(float r, float g, float b) {
     rgb rg = {.r = r, .g = g, .b = b};
     return rg;
+}
+
+image extract_channel(image img, int channel) {
+    image dest = make_image(img.height, img.width, 1);
+    for (int y = 0; y < img.height; y++) {
+        for (int x = 0; x < img.width; x++) {
+            set_pixel(dest, y, x, 0, get_pixel(img, y, x, channel));
+        }
+    }
+    return dest;
 }

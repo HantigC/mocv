@@ -1,4 +1,5 @@
 #include "mathx.h"
+#include <stdarg.h>
 #include "stdio.h"
 float gaussian(float x, float mu, float sigma) {
     float a = (x - mu) / sigma;

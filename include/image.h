@@ -67,6 +67,7 @@ void get_color_safe_(const image img, int y, int x, color c);
 
 rgb get_rgb(image img, int y, int x);
 
+void set_rgb(image dest, int y, int x, rgb c);
 rgb to_rgb(float r, float g, float b);
 image image_to_gray(const image img);
 
@@ -81,5 +82,6 @@ color *alloc_rgb_color(float r, float g, float b);
 color make_color(int channels);
 color rgb_to_color(rgb);
 void free_color(color c);
+image extract_channel(image img, int channel);
 
 #endif

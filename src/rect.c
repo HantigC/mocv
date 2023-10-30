@@ -39,3 +39,16 @@ point2di get_bri(rect r) {
 void print_rect(rect r) {
     printf("Rect(y=%d, x=%d, h=%d, w=%d)", r.y, r.x, r.h, r.w);
 }
+
+tlbr_rect make_tlbr_rect(int tly, int tlx, int bry, int brx) {
+    tlbr_rect r = {.br = {.x = brx, .y = bry}, .tl = {.x = tlx, .y = tly}};
+    return r;
+}
+
+void print_tlbr_rect(tlbr_rect r) {
+    printf("Rect(tl_y=%d, tl_x=%d, br_y=%d, br_x=%d)",
+           r.tl.y,
+           r.tl.x,
+           r.br.y,
+           r.br.x);
+}
