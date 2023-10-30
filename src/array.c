@@ -30,7 +30,7 @@ float max_float(float *xs, int length) {
 }
 
 array make_shaped_array(int nd, ...) {
-    array a = {0};
+    array a;
     a.nd = nd;
     a.shape = (int *)calloc(nd, sizeof(int));
     a.length = 1;
@@ -65,7 +65,7 @@ void extract_coorinate(int dim, va_list ap, int *coord) {
     }
 }
 
-float _array_at(array a, ...) {
+float array_at(array a, ...) {
 
     int coordinate[a.nd];
     va_list ap;
@@ -76,7 +76,7 @@ float _array_at(array a, ...) {
     return a.data[location];
 }
 
-void _array_set_at(float v, array a, ...) {
+void array_set_at(float v, array a, ...) {
     int coordinate[a.nd];
     va_list ap;
     va_start(ap, a);
@@ -85,3 +85,5 @@ void _array_set_at(float v, array a, ...) {
     int location = array_location(a, coordinate);
     a.data[location] = v;
 }
+
+void free_array(array a) { free(a.data); }
