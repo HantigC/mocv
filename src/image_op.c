@@ -642,6 +642,50 @@ float window_ssd(image first_image,
     return sqrt(ssd_val / cnt);
 }
 
+float window_ncc(image first_image,
+                 image second_image,
+                 point2di first_p,
+                 point2di second_p,
+                 tlbr_rect rect) {
+    float ssd_val = 0.0f;
+
+    mean_var *st_per_channel_stats =
+        compute_window_stats(first_image, first_p.y, first_p.x, rect);
+    mean_var *nd_per_channel_stats =
+        compute_window_stats(second_image, second_p.y, second_p.x, rect);
+    float e = 0.0f, esq = 0.0f;
+    float st_pixel, nd_pixel;
+    float pixel_count = 0.0f;
+    float numerator;
+    float denominator;
+    int pixel_num = (rect.br.y - rect.tl.y + 1) * (rect.br.x - rect.tl.x + 1);
+    float nc;
+    float h_mean_acc = 0.0f;
+    float c_st_pixel, c_nd_pixel;
+
+    for (int c = 0; c < first_image.channels; c++) {
+        numerator = 0.0f;
+        pixel_count = 0.0f;
+        for (int y = rect.tl.y; y <= rect.br.y; ++y) {
+            for (int x = rect.tl.x; x <= rect.br.x; ++x) {
+                st_pixel =
+                    get_pixel(first_image, y + first_p.y, x + first_p.x, c);
+                nd_pixel =
+                    get_pixel(second_image, y + second_p.y, x + second_p.x, c);
+                c_nd_pixel = (nd_pixel - nd_per_channel_stats[c].mean);
+                c_st_pixel = (st_pixel - st_per_channel_stats[c].mean);
+                numerator += c_st_pixel * c_nd_pixel;
+            }
+        }
+        numerator /= pixel_num;
+        denominator = st_per_channel_stats[c].var * nd_per_channel_stats[c].var;
+        nc = numerator / sqrt(denominator);
+        nc = 1 - nc;
+        h_mean_acc = acc_mean(h_mean_acc, 1.0f / nc, c + 1);
+    }
+    return 1.0f / h_mean_acc;
+}
+
 float window_sad(image first_image,
                  image second_image,
                  point2di first_p,
@@ -666,10 +710,20 @@ float window_sad(image first_image,
 }
 
 void extract_disparity_to_array(array cost_table, array disparity_array) {
+    // image cost_img = image_from_array(cost_table, 1, 0);
+    // image cost_img3 = image_convert_1x3(cost_img);
     int nd_x = cost_table.shape[0] - 1, st_x = cost_table.shape[1] - 1;
     int nd_dx = array_at(cost_table, idx(nd_x, st_x, 1)),
         st_dx = array_at(cost_table, idx(nd_x, st_x, 2));
     while (nd_x > 0 || st_x > 0) {
+        // printf("(nd_x, st_x, nd_dx, st_dx, cost)=(%d, %d, %d, %d, %f)\n",
+        //        nd_x,
+        //        st_x,
+        //        nd_dx,
+        //        st_dx,
+        //        array_at(cost_table, idx(nd_x, st_x, 0)));
+        // set_rgb(cost_img3, nd_x, st_x, to_rgb(255.0f, 0.0f, 0.0f));
+
         if (nd_dx == 0 || st_dx == 0) {
             array_set_at(-1.0f, disparity_array, idx(st_x));
         } else if (nd_dx == -1 && st_dx == -1) {
@@ -681,6 +735,9 @@ void extract_disparity_to_array(array cost_table, array disparity_array) {
         nd_dx = array_at(cost_table, idx(nd_x, st_x, 1));
         st_dx = array_at(cost_table, idx(nd_x, st_x, 2));
     }
+    // show_image_cv(&cost_img3, "cost", 0, 0, 0);
+    // free_image(cost_img3);
+    // free_image(cost_img);
 }
 void dp_h_disparity(image first_image,
                     image second_image,
@@ -751,6 +808,7 @@ void dp_h_disparity(image first_image,
                               (point2di){.x = st_x, .y = first_y},
                               (point2di){.x = nd_x, .y = second_y},
                               window_rect);
+            // printf("disimilarity=%f\n", disimilarity);
             yx_cost =
                 array_at(cost_table, idx(nd_x - 1, st_x - 1, 0)) + disimilarity;
 

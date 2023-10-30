@@ -1,5 +1,6 @@
 #ifndef IMAGE_H
 #define IMAGE_H
+#include "array.h"
 #include "mathx.h"
 #include "rect.h"
 typedef struct image {
@@ -83,5 +84,7 @@ color make_color(int channels);
 color rgb_to_color(rgb);
 void free_color(color c);
 image extract_channel(image img, int channel);
+
+image image_from_array(array array, int channel_num, ...) ;
 
 #endif

@@ -336,3 +336,21 @@ image extract_channel(image img, int channel) {
     }
     return dest;
 }
+
+image image_from_array(array a, int channel_num, ...) {
+    image dest = make_image(a.shape[0], a.shape[1], channel_num);
+    int channel;
+    va_list va;
+    va_start(va, channel_num);
+    for (int c = 0; c < channel_num; c++) {
+        channel = va_arg(va, int);
+        for (int y = 0; y < a.shape[0]; y++) {
+            for (int x = 0; x < a.shape[1]; x++) {
+                set_pixel(
+                    dest, y, x, channel_num, array_at(a, idx(y, x, channel)));
+            }
+        }
+    }
+    va_end(va);
+    return dest;
+}

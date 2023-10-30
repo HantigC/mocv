@@ -200,6 +200,12 @@ float window_sad(image first_image,
                  point2di second_p,
                  tlbr_rect rect);
 
+float window_ncc(image first_image,
+                 image second_image,
+                 point2di first_p,
+                 point2di second_p,
+                 tlbr_rect rect);
+
 image dp_disparity(image first_image,
                    image second_image,
                    int radius_h,

@@ -14,23 +14,29 @@ typedef struct mean_var {
 
 } mean_var;
 
-mean_var *compute_stats(image first_image, int y, int x, int h_radius,
-                        int w_radius);
+mean_var *
+compute_stats(image first_image, int y, int x, int h_radius, int w_radius);
 
-void compute_stats_(image first_image, int y, int x, int h_radius, int w_radius,
+void compute_stats_(image first_image,
+                    int y,
+                    int x,
+                    int h_radius,
+                    int w_radius,
                     mean_var *per_channel_stats);
 rgb_cube_hist make_3d_rgb_hist(int red_bins, int green_bins, int blue_bins);
-rgb_cube_hist compute_rgb_cube_hist(image img, int red_bins, int green_bins,
-                                    int blue_bins);
+rgb_cube_hist
+compute_rgb_cube_hist(image img, int red_bins, int green_bins, int blue_bins);
 
 histogram compute_1c_image_hist(image img, int bins, int channel, float eps);
 histogram compute_rgb_image_hist(image img);
 histogram compute_gray_image_hist(image img, int channel);
 
 int rgb_cube_length(rgb_cube_hist rgb_hist);
-rgb_cube_hist compute_rgb_cube_hist(image img, int red_bins, int green_bins,
-                                    int blue_bins);
-image render_rgb_cube_histogram(rgb_cube_hist rgb_hist, int height, int width,
+rgb_cube_hist
+compute_rgb_cube_hist(image img, int red_bins, int green_bins, int blue_bins);
+image render_rgb_cube_histogram(rgb_cube_hist rgb_hist,
+                                int height,
+                                int width,
                                 rgb color);
 
 image back_project(image img, rgb_cube_hist rgb_hist);
@@ -39,4 +45,11 @@ image render_rgb_histogram(histogram rgb_histogram, int height, int width);
 
 void print_rgb_cube_hist(rgb_cube_hist rgb_hist);
 void free_rgb_cube_hist(rgb_cube_hist);
+void compute_window_stats_(image first_image,
+                           int y,
+                           int x,
+                           tlbr_rect rect,
+                           mean_var *per_channel_stats);
+
+mean_var *compute_window_stats(image first_image, int y, int x, tlbr_rect rect);
 #endif

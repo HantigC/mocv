@@ -52,12 +52,18 @@ image render_rgb_histogram(histogram rgb_histogram, int height, int width) {
     rgb blue = {0.0f, 1.0f, 0.0f};
 
     int max_count = histogram_max_count(rgb_histogram);
-    render_histogram_at_(img, rgb_histogram, 0, 256, max_count, bin_width,
-                         offset, red);
-    render_histogram_at_(img, rgb_histogram, 256, 2 * 256, max_count, bin_width,
-                         offset, green);
-    render_histogram_at_(img, rgb_histogram, 2 * 256, 3 * 256, max_count,
-                         bin_width, offset, blue);
+    render_histogram_at_(
+        img, rgb_histogram, 0, 256, max_count, bin_width, offset, red);
+    render_histogram_at_(
+        img, rgb_histogram, 256, 2 * 256, max_count, bin_width, offset, green);
+    render_histogram_at_(img,
+                         rgb_histogram,
+                         2 * 256,
+                         3 * 256,
+                         max_count,
+                         bin_width,
+                         offset,
+                         blue);
     return img;
 }
 
@@ -97,7 +103,8 @@ void add_rgb_to_hist(rgb_cube_hist *rgb_hist, rgb rgb_color) {
     rgb_hist->total_count += 1;
 }
 
-float get_rgb_probability(rgb_cube_hist rgb_hist, rgb rgb_color,
+float get_rgb_probability(rgb_cube_hist rgb_hist,
+                          rgb rgb_color,
                           int normalize) {
     int pos = compute_bin_position(rgb_hist, rgb_color);
     float proba = rgb_hist.counts[pos];
@@ -107,8 +114,8 @@ float get_rgb_probability(rgb_cube_hist rgb_hist, rgb rgb_color,
     return proba;
 }
 
-rgb_cube_hist compute_rgb_cube_hist(image img, int red_bins, int green_bins,
-                                    int blue_bins) {
+rgb_cube_hist
+compute_rgb_cube_hist(image img, int red_bins, int green_bins, int blue_bins) {
     rgb_cube_hist rgb_hist = make_3d_rgb_hist(red_bins, green_bins, blue_bins);
     rgb rgb_color;
     for (int y = 0; y < img.height; y++) {
@@ -137,10 +144,12 @@ image back_project(image img, rgb_cube_hist rgb_hist) {
 int rgb_cube_length(rgb_cube_hist rgb_hist) {
     return rgb_hist.red_bins * rgb_hist.green_bins * rgb_hist.blue_bins;
 }
-image render_rgb_cube_histogram(rgb_cube_hist rgb_hist, int height, int width,
+image render_rgb_cube_histogram(rgb_cube_hist rgb_hist,
+                                int height,
+                                int width,
                                 rgb color) {
-    return render_hist_counter(rgb_hist.counts, rgb_cube_length(rgb_hist),
-                               height, width, color);
+    return render_hist_counter(
+        rgb_hist.counts, rgb_cube_length(rgb_hist), height, width, color);
 }
 
 void print_rgb_cube_hist(rgb_cube_hist rgb_hist) {
@@ -165,7 +174,11 @@ void print_rgb_cube_hist(rgb_cube_hist rgb_hist) {
 
 void free_rgb_cube_hist(rgb_cube_hist h) { free(h.counts); }
 
-void compute_stats_(image first_image, int y, int x, int h_radius, int w_radius,
+void compute_stats_(image first_image,
+                    int y,
+                    int x,
+                    int h_radius,
+                    int w_radius,
                     mean_var *per_channel_stats) {
 
     for (int c = 0; c < first_image.channels; c++) {
@@ -187,10 +200,46 @@ void compute_stats_(image first_image, int y, int x, int h_radius, int w_radius,
         per_channel_stats[c].var = esq - e * e;
     }
 }
-mean_var *compute_stats(image first_image, int y, int x, int h_radius,
-                        int w_radius) {
+mean_var *
+compute_stats(image first_image, int y, int x, int h_radius, int w_radius) {
     mean_var *per_channel_stats =
         (mean_var *)calloc(first_image.channels, sizeof(mean_var));
     compute_stats_(first_image, y, x, h_radius, w_radius, per_channel_stats);
+    return per_channel_stats;
+}
+
+void compute_window_stats_(image first_image,
+                           int y,
+                           int x,
+                           tlbr_rect rect,
+                           mean_var *per_channel_stats) {
+
+    float e = 0.0f, esq = 0.0f;
+    float pixel;
+    float pixel_count =
+        (rect.br.y - rect.tl.y + 1) * (rect.br.x - rect.tl.x + 1);
+    for (int c = 0; c < first_image.channels; c++) {
+        e = 0.0f;
+        esq = 0.0f;
+        for (int i = rect.tl.y; i <= rect.br.y; ++i) {
+            for (int j = rect.tl.x; j <= rect.br.x; ++j) {
+                pixel = get_pixel(first_image, i + y, j + x, c);
+                e += pixel;
+                esq += pixel * pixel;
+            }
+        }
+
+        e /= pixel_count;
+        esq /= pixel_count;
+        per_channel_stats[c].mean = e;
+        per_channel_stats[c].var = esq - e * e;
+    }
+}
+
+mean_var *
+compute_window_stats(image first_image, int y, int x, tlbr_rect rect) {
+    mean_var *per_channel_stats =
+        (mean_var *)calloc(first_image.channels, sizeof(mean_var));
+    compute_window_stats_(first_image, y, x, rect, per_channel_stats);
     return per_channel_stats;
 }
