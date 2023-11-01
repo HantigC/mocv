@@ -23,13 +23,13 @@ void click_on_disparity(int event, int x, int y, int flags, void *userdata) {
 }
 
 int main(int argc, char *argv[]) {
-    image img1 = load_image("./apps/stereo/resources/Bowling/view1.png");
-    image img2 = load_image("./apps/stereo/resources/Bowling/view2.png");
+    image img1 = load_image("./apps/stereo/resources/Art/view1.png");
+    image img2 = load_image("./apps/stereo/resources/Art/view2.png");
     rgb red = to_rgb(100.0f, 0.0f, 0.0f);
-    int h_radius = 6, w_radius = 6;
+    int h_radius = 9, w_radius = 9;
     int y = 134, x = 240;
     image disparity =
-        dp_disparity(img1, img2, h_radius, w_radius, 70, 0.4, window_ncc);
+        dp_disparity(img1, img2, h_radius, w_radius, 80, 0.3, window_ncc);
     image disparity_map = render_disparity(disparity, red);
 
     // show_image_cv(&img1, "img1", 1, 0, 0);

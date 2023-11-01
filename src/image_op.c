@@ -755,9 +755,8 @@ void extract_disparity_to_array(array cost_table, array disparity_array) {
         //        array_at(cost_table, idx(nd_x, st_x, 0)));
         set_rgb(cost_img3, nd_x, st_x, to_rgb(255.0f, 0.0f, 0.0f));
 
-        array_set_at(st_x - 1, disparity_array, idx(nd_x + st_x - 1));
-        //array_set_at(-1.0f, disparity_array, idx(nd_x + st_x - 1));
-
+        if (nd_dx == -1)
+            array_set_at(st_x - 1, disparity_array, idx(nd_x + st_x - 1));
         nd_x += nd_dx;
         st_x += st_dx;
         nd_dx = array_at(cost_table, idx(nd_x, st_x, 1));
@@ -792,18 +791,6 @@ void dp_h_disparity(image first_image,
     float x_cost, y_cost, yx_cost;
     float min_disimilarity;
 
-    for (int x = 2; x < cost_table.shape[1]; x++) {
-        x_cost = array_at(cost_table, idx(0, x - 1, 0)) + oclusion_constant;
-        array_set_at(x_cost, cost_table, idx(0, x, 0));
-        array_set_at(0, cost_table, idx(0, x, 1));
-        array_set_at(-1, cost_table, idx(0, x, 2));
-    }
-    for (int x = 1; x < cost_table.shape[0]; x++) {
-        x_cost = x * oclusion_constant + (x - 1) * oclusion_constant;
-        array_set_at(x_cost, cost_table, idx(x, 0, 0));
-        array_set_at(-1, cost_table, idx(x, 0, 1));
-        array_set_at(0, cost_table, idx(x, 0, 2));
-    }
     int min_idx;
     int from_h_radius = MAX3(-first_y, -second_y, -radius_h);
     int to_h_radius = MIN3(
@@ -886,6 +873,20 @@ image dp_disparity(image first_image,
         make_shaped_array(3, second_image.width + 1, max_disparity + 2, 3);
 
     array disparity_array = make_shaped_array(1, first_image.width);
+
+    float init_cost;
+    for (int x = 2; x < cost_table.shape[1]; x++) {
+        init_cost = array_at(cost_table, idx(0, x - 1, 0)) + oclusion_constant;
+        array_set_at(init_cost, cost_table, idx(0, x, 0));
+        array_set_at(0, cost_table, idx(0, x, 1));
+        array_set_at(-1, cost_table, idx(0, x, 2));
+    }
+    for (int x = 1; x < cost_table.shape[0]; x++) {
+        init_cost = x * oclusion_constant + (x - 1) * oclusion_constant;
+        array_set_at(init_cost, cost_table, idx(x, 0, 0));
+        array_set_at(-1, cost_table, idx(x, 0, 1));
+        array_set_at(0, cost_table, idx(x, 0, 2));
+    }
     point2di best_p;
     for (int y = 0; y < first_image.height; y++) {
         printf("y=%d\n", y);
