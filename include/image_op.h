@@ -206,10 +206,12 @@ float window_ncc(image first_image,
                  point2di second_p,
                  tlbr_rect rect);
 
+
 image dp_disparity(image first_image,
                    image second_image,
                    int radius_h,
                    int radius_w,
+                   int max_disparity,
                    float oclusion_constant,
                    wfn fn);
 

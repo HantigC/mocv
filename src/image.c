@@ -346,8 +346,7 @@ image image_from_array(array a, int channel_num, ...) {
         channel = va_arg(va, int);
         for (int y = 0; y < a.shape[0]; y++) {
             for (int x = 0; x < a.shape[1]; x++) {
-                set_pixel(
-                    dest, y, x, channel_num, array_at(a, idx(y, x, channel)));
+                set_pixel(dest, y, x, c, array_at(a, idx(y, x, channel)));
             }
         }
     }
